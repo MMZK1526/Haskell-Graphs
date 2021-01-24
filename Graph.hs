@@ -7,20 +7,42 @@ import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Foldable
 import           Data.Maybe
+import           Data.Tuple
 import           Prelude hiding (map, replicate)
 
 -- Requires installation
+import           Data.IntMap (toAscList)
 import           Data.IntMap.Lazy 
   (IntMap(..)
   , adjust
   , delete
   , fromAscList
   , insert
+  , keys
   , map
+  , mapWithKey
   , member
   , (!)
   )
-import           Data.Sequence hiding (adjust, filter, length)
+import           Data.Sequence hiding (adjust, length)
+
+
+-- Test graphs
+zrm, k3m, k4m, l4m, prm, lpm :: GraphMatrix
+zrm = emptyGraph
+k3m = initGraph [0..2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
+k4m = addUArcs [(0, 3), (1, 3), (2, 3)] $ addNodes [3] k3m
+l4m = initUGraph [1..4] [(1, 2), (2, 3), (3, 4)]
+lpm = initUGraph [1..3] [(1, 1), (2, 2), (3, 3)]
+prm = initUGraph [1..3] [(1, 2), (1, 2)]
+
+zrl, k3l, k4l, l4l, prl, lpl :: GraphList
+zrl = emptyGraph
+k3l = initGraph [0..2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
+k4l = addUArcs [(0, 3), (1, 3), (2, 3)] $ addNodes [3] k3l
+l4l = initUGraph [1..4] [(1, 2), (2, 3), (3, 4)]
+lpl = initUGraph [1..3] [(1, 1), (2, 2), (3, 3)]
+prl = initUGraph [1..3] [(1, 2), (1, 2)]
 
 
 -- A type class for graphs
@@ -40,9 +62,20 @@ class Graph a where
   initGraph :: [Int] -> [(Int, Int)] -> a
   initGraph = flip addArcs . flip addNodes emptyGraph
 
+  -- Similar to above, but initialise an unordered graph
+  initUGraph :: [Int] -> [(Int, Int)] -> a
+  initUGraph nodes arcs
+    = initGraph nodes (arcs ++ fmap swap arcs)
+
   -- Add the arcs specified by the list of pairs in the second argument.
   -- Pre: the node indices in the arc list are in the graph.
   addArcs :: [(Int, Int)] -> a -> a
+
+  -- Similar to above, but the arcs are unordered (both n to n' and n' to n)
+  -- Pre: the node indices in the arc list are in the graph.
+  addUArcs :: [(Int, Int)] -> a -> a
+  addUArcs arcs g
+    = addArcs (arcs ++ fmap swap arcs) g
 
   -- Add the nodes indicated by the list to the graph, ignoring exising nodes.
   -- There are no arcs between new nodes
@@ -50,6 +83,12 @@ class Graph a where
 
   -- Pre: the node indices in the arc list are in the graph.
   removeArcs :: [(Int, Int)] -> a -> a
+
+  -- Similar to above, but unordered (removing both n to n' and n' to n)
+  -- Pre: the node indices in the arc list are in the graph.
+  removeUArcs :: [(Int, Int)] -> a -> a
+  removeUArcs arcs g
+    = removeArcs (arcs ++ fmap swap arcs) g
 
   removeNodes :: [Int] -> a -> a
 
@@ -97,7 +136,7 @@ instance Graph GraphMatrix where
     where
       size'  = size + length nodesF
       nodes' = nodesM g >< fromList nodesF
-      nodesF = filter (isNothing . flip elemIndexL (nodesM g)) nodes
+      nodesF = Prelude.filter (isNothing . flip elemIndexL (nodesM g)) nodes
       size   = nodeNumM g
       arcs'  = execState (
         forM_ [size..(size' - 1)] insertRow
@@ -137,10 +176,13 @@ instance Graph GraphMatrix where
         | r == c    = 0
         | otherwise = min 1 i
 
-  disconnect n (MGraph size nodes arcs)
-    = MGraph size nodes $ (overwrite 0) <$> (overwrite (replicate size 0)) arcs
+  disconnect n g@(MGraph size nodes arcs)
+    | notIn     = g
+    | otherwise = MGraph size nodes $ (rep 0) <$> (rep (replicate size 0)) arcs
     where
-      overwrite = update (fromJust $ elemIndexL n nodes)
+      notIn = isNothing index
+      index = elemIndexL n nodes
+      rep   = update (fromJust index)
 
 
 -- Representing a graph as an adjacency list
@@ -148,9 +190,17 @@ data GraphList = LGraph
   { nodeNumL :: Int
   , nodeList :: IntMap (Seq Int)
   }
-  deriving (Eq, Show)
+  deriving (Eq)
 
-  -- TODO: Show instance
+instance Show GraphList where 
+  show (LGraph _ list)
+    = "Nodes:\n" 
+    ++ show (toList $ keys list) 
+    ++ "\nAdjacency List:"
+    ++ concatMap showEntry (keys list)
+    where
+      showEntry key
+        = '\n' : show key ++ ": " ++ show (toList (list ! key))
 
 instance Graph GraphList where
   emptyGraph = LGraph 0 $ fromAscList []
@@ -198,22 +248,18 @@ instance Graph GraphList where
             removeEle (fromJust index)
             removeAll
 
-  -- TODO:
-  simplify = undefined
-  disconnect = undefined
-            
+  simplify (LGraph size list)
+    = LGraph size (mapWithKey nub' list)
+    where
+      nub' _ Empty
+        = Empty
+      nub' k (n :<| ns)
+        | n == k    = nub' k ns
+        | notIn     = n :<| nub' k ns
+        | otherwise = nub' k ns
+        where
+          notIn = isNothing $ elemIndexL n ns
 
--- Test graphs
-zrm, k3m, k4m, l4m :: GraphMatrix
-zrm = emptyGraph
-k3m = initGraph [0..2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
-k4m 
-  = addArcs [(0, 3), (1, 3), (2, 3), (3, 0), (3, 1), (3, 2)] $ addNodes [3] k3m
-l4m = initGraph [1..4] [(1, 2), (2, 3), (3, 4), (2, 1), (3, 2), (4, 3)]
-
-zrl, k3l, k4l, l4l :: GraphList
-zrl = emptyGraph
-k3l = initGraph [0..2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
-k4l 
-  = addArcs [(0, 3), (1, 3), (2, 3), (3, 0), (3, 1), (3, 2)] $ addNodes [3] k3l
-l4l = initGraph [1..4] [(1, 2), (2, 3), (3, 4), (2, 1), (3, 2), (4, 3)]
+  disconnect n (LGraph size list)
+    = LGraph size $ map (Data.Sequence.filter (/= n)) (delete n list)
+  
