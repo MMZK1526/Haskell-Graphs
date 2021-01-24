@@ -106,11 +106,19 @@ class Graph a where
   -- Remove all arcs connecting to a node, but retain that node
   disconnect :: Int -> a -> a
 
-  -- TODO: inDegree/outDegree
+  -- The in degree of a node in a directed graph
+  -- Pre: the node is in the graph
+  -- Will cause error if the pre-condition is violated.
+  inDegree :: Int -> a -> Int
+
+  -- The out degree of a node in a directed graph
+  -- Pre: the node is in the graph
+  -- Will cause error if the pre-condition is violated.
+  outDegree :: Int -> a -> Int
 
   -- The degree of a node in an undirected graph
   -- Pre: the node is in the graph and the graph is indeed undirected.
-  -- Will return unexpected result if the pre-condition is violated.
+  -- Will cause error/return unexpected result if the pre-condition is violated.
   degree :: Int -> a -> Int
 
 
@@ -173,10 +181,14 @@ instance Graph GraphMatrix where
   addNodes nodes g
     = MGraph size' nodes' arcs'
     where
-      size'  = size + length nodesF
-      nodes' = nodesM g >< fromList nodesF
+      -- Remove the nodes from the argument that are already in the graph.
       nodesF = Prelude.filter (isNothing . flip elemIndexL (nodesM g)) nodes
+      size'  = size + length nodesF
+      -- (><) is concatenation.
+      nodes' = nodesM g >< fromList nodesF
       size   = nodeNumM g
+      -- Basically, add new empty rows to the bottom of the matrix, then add
+      -- new empty columns to the right of the matrix.
       arcs'  = execState (
         forM_ [size..(size' - 1)] insertRow
         ) $ execState (forM_ [size..(size' - 1)] insertEle) <$> nodeMat g
@@ -223,8 +235,14 @@ instance Graph GraphMatrix where
       index = elemIndexL n nodes
       rep   = update (fromJust index)
 
-  degree n (MGraph _ nodes arcs)
+  inDegree n (MGraph _ nodes arcs)
+    = sum $ fmap (`index` (fromJust $ elemIndexL n nodes)) arcs
+
+  outDegree n (MGraph _ nodes arcs)
     = sum $ arcs `index` (fromJust $ elemIndexL n nodes)
+
+  degree 
+    = degree
 
 
 -- Representing a graph as an adjacency list
@@ -313,8 +331,14 @@ instance Graph GraphList where
   disconnect n (LGraph size list)
     = LGraph size $ map (Data.Sequence.filter (/= n)) (delete n list)
 
-  degree n (LGraph _ list)
+  inDegree n (LGraph _ list)
+    = sum $ fmap (length . elemIndicesL n) list
+
+  outDegree n (LGraph _ list)
     = length (list ! n)
+
+  degree 
+    = outDegree
   
 
 -- Transitions between matrix and list
@@ -332,4 +356,5 @@ matToList (MGraph size nodes arcs)
     ind   = index nodes
     arcs' = concatMap (uncurry ((. toList) . decode)) (zip [0..] $ toList arcs)
     decode i row
+      -- [1..n] >> [k] means Data.List.replicate s k;
       = concatMap (\(j, s) -> [1..s] >> [(ind i, ind j)]) (zip [0..] row)
