@@ -25,8 +25,9 @@ import           Data.IntMap.Lazy
   , mapWithKey
   , member
   , (!)
+  , (!?)
   )
-import           Data.Sequence hiding (adjust, length, zip)
+import           Data.Sequence hiding (adjust, length, lookup, zip, (!?))
 
 
 -- Test graphs
@@ -61,6 +62,7 @@ class Graph a where
   -- initGraph [0, 1, 2] [(0, 1), (0, 2), (1, 2)] builds 
   -- an ordered graph that has arcs only from smaller indices to greater ones.
   -- Pre: the node indices in the arc list < the number of nodes of the graph.
+  -- Will cause error if the pre-condition is violated.
   initGraph :: [Int] -> [(Int, Int)] -> a
   initGraph = flip addArcs . flip addNodes emptyGraph
 
@@ -71,23 +73,27 @@ class Graph a where
 
   -- Add the arcs specified by the list of pairs in the second argument.
   -- Pre: the node indices in the arc list are in the graph.
+  -- Will cause error if the pre-condition is violated.
   addArcs :: [(Int, Int)] -> a -> a
 
   -- Similar to above, but the arcs are undirected (both n to n' and n' to n)
   -- Pre: the node indices in the arc list are in the graph.
+  -- Will cause error if the pre-condition is violated.
   addUArcs :: [(Int, Int)] -> a -> a
   addUArcs arcs g
     = addArcs (arcs ++ fmap swap arcs) g
 
   -- Add the nodes indicated by the list to the graph, ignoring exising nodes.
-  -- There are no arcs between new nodes
+  -- There are no arcs between the new nodes
   addNodes :: [Int] -> a -> a
 
   -- Pre: the node indices in the arc list are in the graph.
+  -- Will cause error if the pre-condition is violated
   removeArcs :: [(Int, Int)] -> a -> a
 
   -- Similar to above, but undirected (removing both n to n' and n' to n)
   -- Pre: the node indices in the arc list are in the graph.
+  -- Will cause error if the pre-condition is violated
   removeUArcs :: [(Int, Int)] -> a -> a
   removeUArcs arcs g
     = removeArcs (arcs ++ fmap swap arcs) g
@@ -103,7 +109,8 @@ class Graph a where
   -- TODO: inDegree/outDegree
 
   -- The degree of a node in an undirected graph
-  -- Pre: the node is in the graph.
+  -- Pre: the node is in the graph and the graph is indeed undirected.
+  -- Will return unexpected result if the pre-condition is violated.
   degree :: Int -> a -> Int
 
 
@@ -121,6 +128,30 @@ instance Show GraphMatrix where
     ++ "\nAdjacency Matrix:"
     ++ concatMap (('\n' : ) . show . toList) arcs
 
+-- For two graphs in adjacency matrix to be equal, we need them to have the same
+-- set of nodes (order does not matter), and the same arcs between nodes.
+-- When the nodes are listed in a different order, the matrices will also be
+-- different even when the graphs may be the same, therefore, we cannot depend 
+-- on the derived Eq and must implement a subler sense of equality.
+-- Note that (==) DOES NOT test for isomorphism! This is very expensive since
+-- we don't have a O(n^k) algorithm for that yet...
+instance Eq GraphMatrix where
+  MGraph s n a == MGraph s' n' a' 
+    = s == s' && sort n == sort n' && eq
+    where
+      -- The map between indices of nodes in the matrices. For example, if n is
+      -- [1, 2, 3] and n' is [2, 3, 1], then dict is [(0, 2), (1, 0), (2, 1)].
+      dict    = zip indices transI
+      transI  = fmap (\i -> fromJust (elemIndexL (n `index` i) n')) indices
+      lookUp  = fromJust . (flip lookup dict)
+      indices = [0..(s - 1)]
+      eq      = and $ fmap eqRow indices
+      eqRow i
+        = and $ fmap (\j -> r `index` j == r' `index` (lookUp j)) indices
+        where
+          r  = a `index` i
+          r' = a' `index` (lookUp i)
+
 instance Graph GraphMatrix where
   emptyGraph = MGraph 0 empty empty
 
@@ -129,6 +160,8 @@ instance Graph GraphMatrix where
     where
       addArcs' m []
         = m
+      -- Basically, find the row and column corresponding to node n and node n',
+      -- then increment the value there by one.
       addArcs' m ((n, n') : as)
         = addArcs' (update nI row' m) as
         where
@@ -212,6 +245,13 @@ instance Show GraphList where
       showEntry key
         = '\n' : show key ++ ": " ++ show (toList (list ! key))
 
+instance Eq GraphList where
+  LGraph s l == LGraph s' l'
+    = s == s' && eq
+    where
+      k  = keys l
+      eq = and $ fmap (\s -> (sort <$> (l !? s)) == (sort <$> (l' !? s))) k
+
 instance Graph GraphList where
   emptyGraph = LGraph 0 $ fromAscList []
 
@@ -277,7 +317,7 @@ instance Graph GraphList where
     = length (list ! n)
   
 
--- Transition between matrix to list
+-- Transitions between matrix and list
 listToMat :: GraphList -> GraphMatrix
 listToMat (LGraph size list)
   = initGraph nodes arcs
