@@ -10,9 +10,9 @@ import           Data.Maybe
 import           Data.Tuple
 import           Prelude hiding (map, replicate)
 
--- Requires installation
+-- May require installation
 import           Data.IntMap (toAscList)
-import           Data.IntMap.Lazy 
+import           Data.IntMap.Lazy
   (IntMap(..)
   , adjust
   , delete
@@ -96,8 +96,11 @@ class Graph a where
   simplify :: a -> a
 
   -- Remove all arcs connecting to a node, but retain that node
-  -- Pre: the node is in the graph.
   disconnect :: Int -> a -> a
+
+  -- The degree of a node in an unordered graph
+  -- Pre: the node is in the graph.
+  degreeU :: Int -> a -> Int
 
 
 -- Representing a graph as an adjacency matrix
@@ -184,8 +187,13 @@ instance Graph GraphMatrix where
       index = elemIndexL n nodes
       rep   = update (fromJust index)
 
+  degreeU n (MGraph _ nodes arcs)
+    = sum $ arcs `index` (fromJust $ elemIndexL n nodes)
+
 
 -- Representing a graph as an adjacency list
+-- Note that an unordered loop is stored twice,
+-- e.g. (2, 2) is the entry (2, [2, 2]) instead of (2, [2]).
 data GraphList = LGraph 
   { nodeNumL :: Int
   , nodeList :: IntMap (Seq Int)
@@ -262,4 +270,7 @@ instance Graph GraphList where
 
   disconnect n (LGraph size list)
     = LGraph size $ map (Data.Sequence.filter (/= n)) (delete n list)
+
+  degreeU n (LGraph _ list)
+    = length (list ! n)
   
