@@ -202,11 +202,15 @@ instance Graph GraphMatrix where
     where
       removeArcs' m []
         = m
+      -- Basically, find the row and column corresponding to node n and node n',
+      -- then decrement the value there by one (or remain zero).
       removeArcs' m ((n, n') : as)
-        = removeArcs' (update n row' m) as
+        = removeArcs' (update nI row' m) as
         where
-          row' = update n' (max 0 $ row `index` n' - 1) row
-          row  = m `index` n
+          row' = update nI' (max 0 (row `index` nI' - 1)) row
+          row  = m `index` nI
+          nI   = fromJust $ elemIndexL n nodes
+          nI'  = fromJust $ elemIndexL n' nodes
 
   removeNodes [] g
     = g
@@ -216,8 +220,11 @@ instance Graph GraphMatrix where
     where
       notIn  = isNothing index
       index  = elemIndexL n nodes
+      -- Remove the row corresponding to the node.
       nodes' = del nodes
+      -- Remove the column corresponding to the node.
       arcs'  = del <$> del arcs
+      -- Removal helper
       del    = deleteAt (fromJust index)
       
   simplify (MGraph size nodes arcs)
@@ -229,10 +236,12 @@ instance Graph GraphMatrix where
 
   disconnect n g@(MGraph size nodes arcs)
     | notIn     = g
+    -- Basically, setting the row and column containing the node to all zeros.
     | otherwise = MGraph size nodes $ (rep 0) <$> (rep (replicate size 0)) arcs
     where
       notIn = isNothing index
       index = elemIndexL n nodes
+      -- Replace helper
       rep   = update (fromJust index)
 
   inDegree n (MGraph _ nodes arcs)
