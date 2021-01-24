@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Graph where
 
 -- Introduces the two representations of graphs
@@ -24,7 +26,7 @@ import           Data.IntMap.Lazy
   , member
   , (!)
   )
-import           Data.Sequence hiding (adjust, length)
+import           Data.Sequence hiding (adjust, length, zip)
 
 
 -- Test graphs
@@ -62,7 +64,7 @@ class Graph a where
   initGraph :: [Int] -> [(Int, Int)] -> a
   initGraph = flip addArcs . flip addNodes emptyGraph
 
-  -- Similar to above, but initialise an unordered graph
+  -- Similar to above, but initialise an undirected graph
   initUGraph :: [Int] -> [(Int, Int)] -> a
   initUGraph nodes arcs
     = initGraph nodes (arcs ++ fmap swap arcs)
@@ -71,7 +73,7 @@ class Graph a where
   -- Pre: the node indices in the arc list are in the graph.
   addArcs :: [(Int, Int)] -> a -> a
 
-  -- Similar to above, but the arcs are unordered (both n to n' and n' to n)
+  -- Similar to above, but the arcs are undirected (both n to n' and n' to n)
   -- Pre: the node indices in the arc list are in the graph.
   addUArcs :: [(Int, Int)] -> a -> a
   addUArcs arcs g
@@ -84,7 +86,7 @@ class Graph a where
   -- Pre: the node indices in the arc list are in the graph.
   removeArcs :: [(Int, Int)] -> a -> a
 
-  -- Similar to above, but unordered (removing both n to n' and n' to n)
+  -- Similar to above, but undirected (removing both n to n' and n' to n)
   -- Pre: the node indices in the arc list are in the graph.
   removeUArcs :: [(Int, Int)] -> a -> a
   removeUArcs arcs g
@@ -98,9 +100,11 @@ class Graph a where
   -- Remove all arcs connecting to a node, but retain that node
   disconnect :: Int -> a -> a
 
-  -- The degree of a node in an unordered graph
+  -- TODO: inDegree/outDegree
+
+  -- The degree of a node in an undirected graph
   -- Pre: the node is in the graph.
-  degreeU :: Int -> a -> Int
+  degree :: Int -> a -> Int
 
 
 -- Representing a graph as an adjacency matrix
@@ -109,7 +113,6 @@ data GraphMatrix = MGraph
   , nodesM :: Seq Int
   , nodeMat :: Seq (Seq Int)
   }
-  deriving (Eq)
 
 instance Show GraphMatrix where
   show (MGraph _ nodes arcs)
@@ -187,18 +190,17 @@ instance Graph GraphMatrix where
       index = elemIndexL n nodes
       rep   = update (fromJust index)
 
-  degreeU n (MGraph _ nodes arcs)
+  degree n (MGraph _ nodes arcs)
     = sum $ arcs `index` (fromJust $ elemIndexL n nodes)
 
 
 -- Representing a graph as an adjacency list
--- Note that an unordered loop is stored twice,
+-- Note that an undirected loop is stored twice,
 -- e.g. (2, 2) is the entry (2, [2, 2]) instead of (2, [2]).
 data GraphList = LGraph 
   { nodeNumL :: Int
   , nodeList :: IntMap (Seq Int)
   }
-  deriving (Eq)
 
 instance Show GraphList where 
   show (LGraph _ list)
@@ -271,6 +273,23 @@ instance Graph GraphList where
   disconnect n (LGraph size list)
     = LGraph size $ map (Data.Sequence.filter (/= n)) (delete n list)
 
-  degreeU n (LGraph _ list)
+  degree n (LGraph _ list)
     = length (list ! n)
   
+
+-- Transition between matrix to list
+listToMat :: GraphList -> GraphMatrix
+listToMat (LGraph size list)
+  = initGraph nodes arcs
+  where
+    nodes = keys list
+    arcs  = concatMap (\k -> (k, ) <$> toList (list ! k)) nodes
+
+matToList :: GraphMatrix -> GraphList
+matToList (MGraph size nodes arcs)
+  = initGraph (toList nodes) arcs'
+  where
+    ind   = index nodes
+    arcs' = concatMap (uncurry ((. toList) . decode)) (zip [0..] $ toList arcs)
+    decode i row
+      = concatMap (\(j, s) -> [1..s] >> [(ind i, ind j)]) (zip [0..] row)
