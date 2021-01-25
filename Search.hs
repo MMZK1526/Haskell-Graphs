@@ -1,5 +1,7 @@
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs
 
+module Search where
+
 -- Implements Depth-First Search and Breadth-First Search on adjacency list.
 -- All graphs are undirected here.
 
@@ -16,8 +18,8 @@ import           Graph
 
 
 -- Test graphs
-foo :: GraphList
-foo 
+foo1 :: GraphList
+foo1 
   = initUGraph [1..8] 
   [(1, 2), (2, 3), (2, 4), (4, 5), (4, 6), (4, 8), (6, 7), (7, 8)]
 

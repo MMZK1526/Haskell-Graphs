@@ -3,6 +3,7 @@
 -- Examples of creating graphs and applying algorithms
 
 import           Graph
+import           Search
 
 -- Make an (undirected) K_{3,3} graph that has nodes 1, 2, .., 6
 -- such that nodes 1, 2 and 3 does not conenct with each other;
@@ -43,8 +44,35 @@ k33List
     -- 5: [3,2,1]
     -- 6: [3,2,1]
 
--- We can also check that they represents the identical graph
+-- We can also check that they represents the same graph.
   -- listToMat k33List == k33Matrix
     -- True
   -- matToList k33Matrix == k33List
     -- True
+
+
+-- Choose node 1 as the root, conduct a Depth-First Search on the node and
+-- find the spanning tree.
+k33DFSTree :: GraphList
+k33DFSTree = depthFirstTree 1 k33List
+
+-- Again, choose node 1 as the root, conduct a Depth-First Search on the node.
+-- and find the depths of each node.
+k33DFSNodes :: [(Int, Int)]
+k33DFSNodes = depthFirstNodes 1 k33List
+
+-- in ghci:
+  -- k33DFSTree
+    -- Nodes:
+    -- [1,2,3,4,5,6]
+    -- Adjacency List:
+    -- 1: [6]
+    -- 2: [4,5]
+    -- 3: [5,6]
+    -- 4: [2]
+    -- 5: [2,3]
+    -- 6: [3,1]
+  -- k33DFSNodes
+    -- [(1,0),(2,4),(3,2),(4,5),(5,3),(6,1)]
+-- We can check that the spanning tree is indeed a tree,
+-- and the depths are correct.
