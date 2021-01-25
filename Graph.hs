@@ -355,8 +355,7 @@ instance Graph GraphList where
   outDegree n (LGraph _ list)
     = length (list ! n)
 
-  degree 
-    = outDegree
+  degree = outDegree
   
 
 -- Transitions between matrix and list
