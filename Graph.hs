@@ -1,5 +1,7 @@
 {-# LANGUAGE TupleSections #-}
 
+-- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs
+
 module Graph where
 
 -- Introduces the two representations of graphs (adjacency matrix/list).
@@ -51,7 +53,7 @@ class Graph a where
   -- connect with each other.
   -- Note that the graph is directed by default, which means that 
   -- initGraph [0, 1, 2] [(0, 1), (0, 2), (1, 2)] builds 
-  -- an ordered graph that has arcs only from smaller indices to greater ones.
+  -- an ordered graph that has arcs only from smaller nodes to greater ones.
   -- Pre: the node indices in the arc list < the number of nodes of the graph.
   initGraph :: [Int] -> [(Int, Int)] -> a
   initGraph = flip addArcs . flip addNodes emptyGraph
@@ -92,6 +94,15 @@ class Graph a where
   -- Removes all arcs connecting to a node, but retain that node.
   disconnect :: Int -> a -> a
 
+  -- Returns true if the node is disconnected in an undirected graph.
+  -- Note that this default implementation may not be the most efficient.
+  -- Pre: the node is in the graph and the graph is indeed undirected.
+  isDisconnected :: Int -> a -> Bool
+  isDisconnected = ((== 0) .) . degree
+
+  -- Returns the number of nodes
+  numNodes :: a -> Int
+
   -- The in degree of a node in a directed graph.
   -- Pre: the node is in the graph.
   inDegree :: Int -> a -> Int
@@ -103,11 +114,6 @@ class Graph a where
   -- The degree of a node in an undirected graph.
   -- Pre: the node is in the graph and the graph is indeed undirected.
   degree :: Int -> a -> Int
-
-  -- Returns true if the node is disconnected in an undirected graph.
-  -- Pre: the node is in the graph and the graph is indeed undirected.
-  isDisconnected :: Int -> a -> Bool
-  isDisconnected = ((== 0) .) . degree
 
 
 -- Representing a graph as an adjacency matrix
@@ -208,9 +214,9 @@ instance Graph GraphMatrix where
     where
       notIn  = isNothing index
       index  = elemIndexL n nodes
-      -- Removes the row corresponding to the node.
+      -- Removes the given node
       nodes' = del nodes
-      -- Removes the column corresponding to the node.
+      -- Removes the row and column corresponding to the node.
       arcs'  = del <$> del arcs
       -- Removal helper
       del    = deleteAt (fromJust index)
@@ -232,19 +238,20 @@ instance Graph GraphMatrix where
       -- Replacement helper
       rep   = update (fromJust index)
 
+  isDisconnected n (MGraph _ nodes arcs)
+    = null $ Data.Sequence.filter (/= 0) (arcs `index` i)
+    where
+      i = fromJust $ elemIndexL n nodes
+
+  numNodes = nodeNumM
+
   inDegree n (MGraph _ nodes arcs)
     = sum $ fmap (`index` (fromJust $ elemIndexL n nodes)) arcs
 
   outDegree n (MGraph _ nodes arcs)
     = sum $ arcs `index` (fromJust $ elemIndexL n nodes)
 
-  degree 
-    = outDegree
-
-  isDisconnected n (MGraph _ nodes arcs)
-    = null $ Data.Sequence.filter (/= 0) (arcs `index` i)
-    where
-      i = fromJust $ elemIndexL n nodes
+  degree = outDegree
 
 
 -- Representing a graph as an adjacency list
@@ -337,6 +344,11 @@ instance Graph GraphList where
   disconnect n (LGraph size list)
     = LGraph size $ map (Data.Sequence.filter (/= n)) (delete n list)
 
+  isDisconnected n (LGraph _ list)
+    = null (list ! n)
+
+  numNodes = nodeNumL
+
   inDegree n (LGraph _ list)
     = sum $ fmap (length . elemIndicesL n) list
 
@@ -345,9 +357,6 @@ instance Graph GraphList where
 
   degree 
     = outDegree
-
-  isDisconnected n (LGraph _ list)
-    = null (list ! n)
   
 
 -- Transitions between matrix and list
