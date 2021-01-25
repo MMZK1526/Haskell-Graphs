@@ -239,7 +239,7 @@ instance Graph GraphMatrix where
     = sum $ arcs `index` (fromJust $ elemIndexL n nodes)
 
   degree 
-    = degree
+    = outDegree
 
   isDisconnected n (MGraph _ nodes arcs)
     = null $ Data.Sequence.filter (/= 0) (arcs `index` i)
