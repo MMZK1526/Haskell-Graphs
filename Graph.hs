@@ -2,32 +2,23 @@
 
 module Graph where
 
--- Introduces the two representations of graphs
--- Provides initialisers and modifiers
+-- Introduces the two representations of graphs (adjacency matrix/list).
+-- Provides initialisers and modifiers.
 
 import           Control.Monad
 import           Control.Monad.Trans.State
-import           Data.Foldable
-import           Data.Maybe
-import           Data.Tuple
+import           Data.Foldable (toList)
+import           Data.Maybe (fromJust, isNothing)
+import           Data.Tuple (swap)
 import           Prelude hiding (map, replicate)
 
 -- May require installation
 import           Data.IntMap (toAscList)
 import           Data.IntMap.Lazy
-  (IntMap(..)
-  , adjust
-  , delete
-  , fromAscList
-  , insert
-  , keys
-  , map
-  , mapWithKey
-  , member
-  , (!)
-  , (!?)
+  (IntMap(..), adjust, delete, fromAscList, insert, keys, map, mapWithKey
+  , member, (!), (!?)
   )
-import           Data.Sequence hiding (adjust, length, lookup, zip, (!?))
+import           Data.Sequence hiding (adjust, length, lookup, null, zip, (!?))
 
 
 -- Test graphs
@@ -48,78 +39,75 @@ lpl = initUGraph [1..3] [(1, 1), (2, 2), (3, 3)]
 prl = initUGraph [1..3] [(1, 2), (1, 2)]
 
 
--- A type class for graphs
+-- A type class for graphs; suitable for both directed and undirected.
 class Graph a where
   -- Returns the empty graph with no nodes and arcs.
   emptyGraph :: a
   
-  -- Initialise the graph by having the nodes from the first argument
+  -- Initialises the graph by having the nodes from the first argument
   -- and the arcs specified by the list of pairs in the second argument,
   -- e.g. initMGraph [0, 1, 2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
   -- builds the K3 graph, which has 3 nodes (indexed 0, 1 and 2) and they
   -- connect with each other.
-  -- Note that the graph is ordered by default, which means that 
+  -- Note that the graph is directed by default, which means that 
   -- initGraph [0, 1, 2] [(0, 1), (0, 2), (1, 2)] builds 
   -- an ordered graph that has arcs only from smaller indices to greater ones.
   -- Pre: the node indices in the arc list < the number of nodes of the graph.
-  -- Will cause error if the pre-condition is violated.
   initGraph :: [Int] -> [(Int, Int)] -> a
   initGraph = flip addArcs . flip addNodes emptyGraph
 
-  -- Similar to above, but initialise an undirected graph
+  -- Similar to above, but initialise an undirected graph.
   initUGraph :: [Int] -> [(Int, Int)] -> a
   initUGraph nodes arcs
     = initGraph nodes (arcs ++ fmap swap arcs)
 
-  -- Add the arcs specified by the list of pairs in the second argument.
+  -- Adds the arcs specified by the list of pairs in the second argument.
   -- Pre: the node indices in the arc list are in the graph.
-  -- Will cause error if the pre-condition is violated.
   addArcs :: [(Int, Int)] -> a -> a
 
-  -- Similar to above, but the arcs are undirected (both n to n' and n' to n)
+  -- Similar to above, but the arcs are undirected (both n to n' and n' to n).
   -- Pre: the node indices in the arc list are in the graph.
-  -- Will cause error if the pre-condition is violated.
   addUArcs :: [(Int, Int)] -> a -> a
   addUArcs arcs g
     = addArcs (arcs ++ fmap swap arcs) g
 
-  -- Add the nodes indicated by the list to the graph, ignoring exising nodes.
+  -- Adds the nodes indicated by the list to the graph, ignoring exising nodes.
   -- There are no arcs between the new nodes
   addNodes :: [Int] -> a -> a
 
   -- Pre: the node indices in the arc list are in the graph.
-  -- Will cause error if the pre-condition is violated
   removeArcs :: [(Int, Int)] -> a -> a
 
-  -- Similar to above, but undirected (removing both n to n' and n' to n)
+  -- Similar to above, but undirected (removing both n to n' and n' to n).
   -- Pre: the node indices in the arc list are in the graph.
-  -- Will cause error if the pre-condition is violated
   removeUArcs :: [(Int, Int)] -> a -> a
   removeUArcs arcs g
     = removeArcs (arcs ++ fmap swap arcs) g
 
   removeNodes :: [Int] -> a -> a
 
-  -- Convert the graph to simple graph by removing all parallels and loops
+  -- Converts the graph to simple graph by removing all parallels and loops.
   simplify :: a -> a
 
-  -- Remove all arcs connecting to a node, but retain that node
+  -- Removes all arcs connecting to a node, but retain that node.
   disconnect :: Int -> a -> a
 
-  -- The in degree of a node in a directed graph
-  -- Pre: the node is in the graph
-  -- Will cause error if the pre-condition is violated.
+  -- The in degree of a node in a directed graph.
+  -- Pre: the node is in the graph.
   inDegree :: Int -> a -> Int
 
-  -- The out degree of a node in a directed graph
+  -- The out degree of a node in a directed graph.
   -- Pre: the node is in the graph
-  -- Will cause error if the pre-condition is violated.
   outDegree :: Int -> a -> Int
 
-  -- The degree of a node in an undirected graph
+  -- The degree of a node in an undirected graph.
   -- Pre: the node is in the graph and the graph is indeed undirected.
-  -- Will cause error/return unexpected result if the pre-condition is violated.
   degree :: Int -> a -> Int
+
+  -- Returns true if the node is disconnected in an undirected graph.
+  -- Pre: the node is in the graph and the graph is indeed undirected.
+  isDisconnected :: Int -> a -> Bool
+  isDisconnected = ((== 0) .) . degree
 
 
 -- Representing a graph as an adjacency matrix
@@ -181,7 +169,7 @@ instance Graph GraphMatrix where
   addNodes nodes g
     = MGraph size' nodes' arcs'
     where
-      -- Remove the nodes from the argument that are already in the graph.
+      -- Removes the nodes from the argument that are already in the graph.
       nodesF = Prelude.filter (isNothing . flip elemIndexL (nodesM g)) nodes
       size'  = size + length nodesF
       -- (><) is concatenation.
@@ -220,9 +208,9 @@ instance Graph GraphMatrix where
     where
       notIn  = isNothing index
       index  = elemIndexL n nodes
-      -- Remove the row corresponding to the node.
+      -- Removes the row corresponding to the node.
       nodes' = del nodes
-      -- Remove the column corresponding to the node.
+      -- Removes the column corresponding to the node.
       arcs'  = del <$> del arcs
       -- Removal helper
       del    = deleteAt (fromJust index)
@@ -241,7 +229,7 @@ instance Graph GraphMatrix where
     where
       notIn = isNothing index
       index = elemIndexL n nodes
-      -- Replace helper
+      -- Replacement helper
       rep   = update (fromJust index)
 
   inDegree n (MGraph _ nodes arcs)
@@ -252,6 +240,11 @@ instance Graph GraphMatrix where
 
   degree 
     = degree
+
+  isDisconnected n (MGraph _ nodes arcs)
+    = null $ Data.Sequence.filter (/= 0) (arcs `index` i)
+    where
+      i = fromJust $ elemIndexL n nodes
 
 
 -- Representing a graph as an adjacency list
@@ -314,8 +307,11 @@ instance Graph GraphList where
     | member n list = removeNodes ns $ LGraph (size - 1) l'
     | otherwise     = removeNodes ns g
     where
+      -- Basically, remove the key 'n',
+      -- then remove all occurrence of 'n' elsewhere.
       l' = map (execState removeAll) $ delete n list
       removeEle i = state $ \s -> ((), deleteAt i s)
+      -- Removes 'n' from a row (sequence of Int),
       removeAll = do
         entry <- get
         let index = elemIndexL n entry
@@ -328,6 +324,7 @@ instance Graph GraphList where
   simplify (LGraph size list)
     = LGraph size (mapWithKey nub' list)
     where
+      -- Removes all duplicates (parallels) as well as the key (loops)
       nub' _ Empty
         = Empty
       nub' k (n :<| ns)
@@ -348,6 +345,9 @@ instance Graph GraphList where
 
   degree 
     = outDegree
+
+  isDisconnected n (LGraph _ list)
+    = null (list ! n)
   
 
 -- Transitions between matrix and list
