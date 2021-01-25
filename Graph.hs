@@ -15,7 +15,6 @@ import           Data.Tuple (swap)
 import           Prelude hiding (map, replicate)
 
 -- May require installation
-import           Data.IntMap (toAscList)
 import           Data.IntMap.Lazy
   (IntMap(..), adjust, delete, fromAscList, insert, keys, map, mapWithKey
   , member, (!), (!?)
@@ -315,7 +314,7 @@ instance Graph GraphList where
     | otherwise     = removeNodes ns g
     where
       -- Basically, remove the key 'n',
-      -- then remove all occurrence of 'n' elsewhere.
+      -- then remove all occurrences of 'n' elsewhere.
       l' = map (execState removeAll) $ delete n list
       removeEle i = state $ \s -> ((), deleteAt i s)
       -- Removes 'n' from a row (sequence of Int),
