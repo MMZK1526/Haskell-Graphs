@@ -9,5 +9,5 @@ Implements graph using adjacency matrix and adjacency list
 Provides a type class for graphs  
 
 # Search
-Implements Depth-First Search & Breadth-First Search (TODO)  
+Implements Depth-First Search & Breadth-First Search  
 Generate spanning trees and computes depth of each node given the root  
