@@ -10,14 +10,15 @@ module Graph where
 import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Foldable (toList)
-import           Data.Maybe (fromJust, isNothing)
+import           Data.List (intercalate)
+import           Data.Maybe (fromJust, isNothing, maybe)
 import           Data.Tuple (swap)
 import           Prelude hiding (map, replicate)
 
 -- May require installation
 import           Data.IntMap.Lazy
   (IntMap(..), adjust, delete, fromAscList, insert, keys, map, mapWithKey
-  , member, (!), (!?)
+  , member, notMember, (!), (!?)
   )
 import           Data.Sequence hiding (adjust, length, lookup, null, zip, (!?))
 
@@ -41,6 +42,7 @@ prl = initUGraph [1..3] [(1, 2), (1, 2)]
 
 
 -- A type class for graphs; suitable for both directed and undirected.
+-- TODO: Make it compatible with weighted simple graph
 class Graph a where
   -- Returns the empty graph with no nodes and arcs.
   emptyGraph :: a
@@ -92,14 +94,20 @@ class Graph a where
 
   -- Removes all arcs connecting to a node, but retain that node.
   disconnect :: Int -> a -> a
+  disconnect n g
+    = addNodes [n] $ removeNodes [n] g
 
   -- Returns true if the node is disconnected in an undirected graph.
   -- Pre: the node is in the graph and the graph is indeed undirected.
   isDisconnectedAt :: Int -> a -> Bool
   isDisconnectedAt = ((== 0) .) . degree
 
+  -- Returns the list of nodes.
+  nodes :: a -> [Int]
+
   -- Returns the number of nodes
   numNodes :: a -> Int
+  numNodes = length . nodes
 
   -- The in degree of a node in a directed graph.
   -- Pre: the node is in the graph.
@@ -112,6 +120,10 @@ class Graph a where
   -- The degree of a node in an undirected graph.
   -- Pre: the node is in the graph and the graph is indeed undirected.
   degree :: Int -> a -> Int
+
+  -- Returns the list of nodes connects from the given node
+  -- Pre: the node is in the graph.
+  neighbours :: Int -> a -> [Int]
 
 
 -- Representing a graph as an adjacency matrix
@@ -226,20 +238,12 @@ instance Graph GraphMatrix where
         | r == c    = 0
         | otherwise = min 1 i
 
-  disconnect n g@(MGraph size nodes arcs)
-    | notIn     = g
-    -- Basically, setting the row and column containing the node to all zeros.
-    | otherwise = MGraph size nodes $ (rep 0) <$> (rep (replicate size 0)) arcs
-    where
-      notIn = isNothing index
-      index = elemIndexL n nodes
-      -- Replacement helper
-      rep   = update (fromJust index)
-
   isDisconnectedAt n (MGraph _ nodes arcs)
     = null $ Data.Sequence.filter (/= 0) (arcs `index` i)
     where
       i = fromJust $ elemIndexL n nodes
+
+  nodes = toList . nodesM
 
   numNodes = nodeNumM
 
@@ -251,13 +255,18 @@ instance Graph GraphMatrix where
 
   degree = outDegree
 
+  neighbours n (MGraph _ nodes arcs)
+    = (nodes `index`) <$> [i | (i, e) <- zip [0..] row, e > 0]
+    where
+      row = toList $ arcs `index` (fromJust $ elemIndexL n nodes)
 
--- Representing a graph as an adjacency list
+
+-- Representing a graph as an adjacency list.
 -- Note that an undirected loop is stored twice,
--- e.g. (2, 2) is the entry (2, [2, 2]) instead of (2, [2]).
+-- e.g. the arc (4, 4) is the represented as 4: [4: 2] instead of 4: [4: 1].
 data GraphList = LGraph 
   { nodeNumL :: Int
-  , nodeList :: IntMap (Seq Int)
+  , nodeList :: IntMap (IntMap Int)
   }
 
 instance Show GraphList where 
@@ -268,14 +277,16 @@ instance Show GraphList where
     ++ concatMap showEntry (keys list)
     where
       showEntry key
-        = '\n' : show key ++ ": " ++ show (toList (list ! key))
+        = '\n' : show key ++ ": [" ++ showMap (list ! key) ++ "]"
+      showMap m
+        = intercalate ", " $ (\k -> show k ++ ": " ++ show (m ! k)) <$> (keys m)
 
 instance Eq GraphList where
   LGraph s l == LGraph s' l'
     = s == s' && eq
     where
       k  = keys l
-      eq = and $ fmap (\s -> (sort <$> (l !? s)) == (sort <$> (l' !? s))) k
+      eq = and $ fmap (\s -> (l !? s) == (l' !? s)) k
 
 instance Graph GraphList where
   emptyGraph = LGraph 0 $ fromAscList []
@@ -286,13 +297,19 @@ instance Graph GraphList where
       addArcs' l []
         = l
       addArcs' l ((n, n') : as)
-        = addArcs' (adjust (insertAt 0 n') n l) as
+        = addArcs' (adjust updateEntry n l) as
+        where
+          updateEntry m
+            | member n' m = adjust (+1) n' m
+            | otherwise   = insert n' 1 m
 
   addNodes [] g
     = g
   addNodes (n : ns) g@(LGraph size list)
     | member n list = addNodes ns g
-    | otherwise     = addNodes ns $ LGraph (size + 1) (insert n empty list)
+    | otherwise     = addNodes ns $ LGraph (size + 1) (insert n empMap list)
+    where
+      empMap = fromAscList []
 
   removeArcs arcs (LGraph size list)
     = LGraph size $ removeArcs' list arcs
@@ -300,11 +317,13 @@ instance Graph GraphList where
       removeArcs' l []
         = l
       removeArcs' l ((n, n') : as)
-        | isNothing index = removeArcs' l as
-        | otherwise       = removeArcs' l' as
+        | member n l = removeArcs' (adjust updateEntry n l) as
+        | otherwise  = removeArcs' l as
         where
-          index = elemIndexL n' (l ! n)
-          l'    = adjust (deleteAt (fromJust index)) n l
+          updateEntry m
+            | notMember n' m = m
+            | m ! n' <= 1    = delete n' m
+            | otherwise      = adjust (+ (-1)) n' m
 
   removeNodes [] g
     = g
@@ -312,48 +331,32 @@ instance Graph GraphList where
     | member n list = removeNodes ns $ LGraph (size - 1) l'
     | otherwise     = removeNodes ns g
     where
-      -- Basically, remove the key 'n',
-      -- then remove all occurrences of 'n' elsewhere.
-      l' = map (execState removeAll) $ delete n list
-      removeEle i = state $ \s -> ((), deleteAt i s)
-      -- Removes 'n' from a row (sequence of Int),
-      removeAll = do
-        entry <- get
-        let index = elemIndexL n entry
-        if (isNothing index)
-          then return ()
-          else do 
-            removeEle (fromJust index)
-            removeAll
+      l' = map (delete n) (delete n list)
 
   simplify (LGraph size list)
     = LGraph size (mapWithKey nub' list)
     where
       -- Removes all duplicates (parallels) as well as the key (loops)
-      nub' _ Empty
-        = Empty
-      nub' k (n :<| ns)
-        | n == k    = nub' k ns
-        | notIn     = n :<| nub' k ns
-        | otherwise = nub' k ns
-        where
-          notIn = isNothing $ elemIndexL n ns
-
-  disconnect n (LGraph size list)
-    = LGraph size $ map (Data.Sequence.filter (/= n)) (delete n list)
+      nub' k m
+        = map (const 1) $ delete k m
 
   isDisconnectedAt n (LGraph _ list)
     = null (list ! n)
 
+  nodes = keys . nodeList
+
   numNodes = nodeNumL
 
   inDegree n (LGraph _ list)
-    = sum $ fmap (length . elemIndicesL n) list
+    = sum $ fmap ((maybe 0 id) . (!? n)) list
 
   outDegree n (LGraph _ list)
     = length (list ! n)
 
   degree = outDegree
+
+  neighbours n (LGraph _ list)
+    = keys (list ! n)
   
 
 -- Transitions between matrix and list
@@ -362,7 +365,9 @@ listToMat (LGraph size list)
   = initGraph nodes arcs
   where
     nodes = keys list
-    arcs  = concatMap (\k -> (k, ) <$> toList (list ! k)) nodes
+    arcs  = concatMap (\k -> (k, ) <$> getArcs (list ! k)) nodes
+    getArcs m
+      = concat $ (\k -> [1..(m ! k)] >> [k]) <$> (keys m)
 
 matToList :: GraphMatrix -> GraphList
 matToList (MGraph size nodes arcs)

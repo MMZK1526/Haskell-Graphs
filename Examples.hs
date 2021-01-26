@@ -41,12 +41,12 @@ k33List
     -- Nodes:
     -- [1,2,3,4,5,6]
     -- Adjacency List:
-    -- 1: [6,5,4]
-    -- 2: [6,5,4]
-    -- 3: [6,5,4]
-    -- 4: [3,2,1]
-    -- 5: [3,2,1]
-    -- 6: [3,2,1]
+    -- 1: [4: 1, 5: 1, 6: 1]
+    -- 2: [4: 1, 5: 1, 6: 1]
+    -- 3: [4: 1, 5: 1, 6: 1]
+    -- 4: [1: 1, 2: 1, 3: 1]
+    -- 5: [1: 1, 2: 1, 3: 1]
+    -- 6: [1: 1, 2: 1, 3: 1]
 
 -- We can also check that they represents the same graph.
   -- listToMat k33List == k33Matrix
@@ -72,6 +72,8 @@ k3t2List = initUGraph [1..6] [(1, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 6)]
 
 -- Choose node 1 as the root, conduct a Depth-First Search on the node and
 -- find the spanning tree.
+-- The functions work for both GraphList and GraphMatrix, but I'm demonstrating
+-- the GraphList case here.
 k33DFSTree :: GraphList
 k33DFSTree = depthFirstTree 1 k33List
 
@@ -85,12 +87,12 @@ k33DFSNodes = depthFirstNodes 1 k33List
     -- Nodes:
     -- [1,2,3,4,5,6]
     -- Adjacency List:
-    -- 1: [6]
-    -- 2: [4,5]
-    -- 3: [5,6]
-    -- 4: [2]
-    -- 5: [2,3]
-    -- 6: [3,1]
+    -- 1: [4: 1]
+    -- 2: [4: 1, 5: 1]
+    -- 3: [5: 1, 6: 1]
+    -- 4: [1: 1, 2: 1]
+    -- 5: [2: 1, 3: 1]
+    -- 6: [3: 1]
   -- k33DFSNodes
     -- [(1,0),(2,4),(3,2),(4,5),(5,3),(6,1)]
 -- We can check that the spanning tree is indeed a tree,
@@ -109,15 +111,15 @@ k33BFSNodes = breadthFirstNodes 1 k33List
 
 -- in ghci:
   -- k33BFSTree
-      -- Nodes:
-      -- [1,2,3,4,5,6]
-      -- Adjacency List:
-      -- 1: [4,5,6]
-      -- 2: [4]
-      -- 3: [4]
-      -- 4: [2,3,1]
-      -- 5: [1]
-      -- 6: [1]
+    -- Nodes:
+    -- [1,2,3,4,5,6]
+    -- Adjacency List:
+    -- 1: [4: 1, 5: 1, 6: 1]
+    -- 2: [6: 1]
+    -- 3: [6: 1]
+    -- 4: [1: 1]
+    -- 5: [1: 1]
+    -- 6: [1: 1, 2: 1, 3: 1]
   -- k33BFSNodes
     -- [(1,0),(2,2),(3,2),(4,1),(5,1),(6,1)]
 -- We can check that the spanning tree is indeed a tree,
@@ -132,11 +134,11 @@ k33BFSNodes = breadthFirstNodes 1 k33List
 
 
 -- Distance check
-  -- distance 1 5 k33List
+  -- distance 1 5 k33Matrix
     -- Just 1
-  -- distance 1 2 k33List
+  -- distance 1 2 k33Matrix
     -- Just 2
-  -- distance 1 1 k33List
+  -- distance 1 1 k33Matrix
     -- Just 0
   -- distance 1 4 k3t2List
     -- Nothing
