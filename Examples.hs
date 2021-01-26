@@ -54,9 +54,16 @@ k33List
   -- matToList k33Matrix == k33List
     -- True
 
+
 -- Some other graphs for testing purpose
+
+-- K5 graph
 k5List :: GraphList
 k5List = initUGraph [1..5] [(i, j) | i <- [1..5], j <- [1..5], i < j]
+
+-- Disconnected graph with two K3 components
+k3t2List :: GraphList
+k3t2List = initUGraph [1..6] [(1, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 6)]
 
 
 -------------------------------------------------------------------------------- 
@@ -116,11 +123,30 @@ k33BFSNodes = breadthFirstNodes 1 k33List
 -- We can check that the spanning tree is indeed a tree,
 -- and the depths are correct.
 
+
+-- Connectivity check:
+  -- isConnected k33List
+    -- True
+  -- isConnected k3t2List
+    -- False
+
+
+-- Distance check
+  -- distance 1 5 k33List
+    -- Just 1
+  -- distance 1 2 k33List
+    -- Just 2
+  -- distance 1 1 k33List
+    -- Just 0
+  -- distance 1 4 k3t2List
+    -- Nothing
+
+
 -- More examples
 k5DFS :: SearchResult GraphList
 k5DFS = depthFirst 3 k5List
--- Through Depth-First Search, the K5 graph is spanned by a linear tree
+-- Through Depth-First Search, the K5 graph is spanned by a linear tree.
 
 k5BFS :: SearchResult GraphList
 k5BFS = breadthFirst 3 k5List
--- Through Breadth-First Search, the K5 graph is spanned by a 1-depth tree
+-- Through Breadth-First Search, the K5 graph is spanned by a 1-depth tree.

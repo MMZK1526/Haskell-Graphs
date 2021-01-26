@@ -94,10 +94,9 @@ class Graph a where
   disconnect :: Int -> a -> a
 
   -- Returns true if the node is disconnected in an undirected graph.
-  -- Note that this default implementation may not be the most efficient.
   -- Pre: the node is in the graph and the graph is indeed undirected.
-  isDisconnected :: Int -> a -> Bool
-  isDisconnected = ((== 0) .) . degree
+  isDisconnectedAt :: Int -> a -> Bool
+  isDisconnectedAt = ((== 0) .) . degree
 
   -- Returns the number of nodes
   numNodes :: a -> Int
@@ -107,7 +106,7 @@ class Graph a where
   inDegree :: Int -> a -> Int
 
   -- The out degree of a node in a directed graph.
-  -- Pre: the node is in the graph
+  -- Pre: the node is in the graph.
   outDegree :: Int -> a -> Int
 
   -- The degree of a node in an undirected graph.
@@ -237,7 +236,7 @@ instance Graph GraphMatrix where
       -- Replacement helper
       rep   = update (fromJust index)
 
-  isDisconnected n (MGraph _ nodes arcs)
+  isDisconnectedAt n (MGraph _ nodes arcs)
     = null $ Data.Sequence.filter (/= 0) (arcs `index` i)
     where
       i = fromJust $ elemIndexL n nodes
@@ -343,7 +342,7 @@ instance Graph GraphList where
   disconnect n (LGraph size list)
     = LGraph size $ map (Data.Sequence.filter (/= n)) (delete n list)
 
-  isDisconnected n (LGraph _ list)
+  isDisconnectedAt n (LGraph _ list)
     = null (list ! n)
 
   numNodes = nodeNumL
