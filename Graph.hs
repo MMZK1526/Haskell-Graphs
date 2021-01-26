@@ -42,7 +42,7 @@ prl = initUGraph [1..3] [(1, 2), (1, 2)]
 
 
 -- A type class for graphs; suitable for both directed and undirected.
--- TODO: Make it compatible with weighted simple graph
+-- TODO: Make it compatible with positively weighted simple graph
 class Graph a where
   -- Returns the empty graph with no nodes and arcs.
   emptyGraph :: a
@@ -78,6 +78,8 @@ class Graph a where
   -- There are no arcs between the new nodes
   addNodes :: [Int] -> a -> a
 
+  -- If the arc has parallels (or weight > 1, depending on the interpretation),
+  -- removeArcs removes exactly 1 arc rather than breaking the connection.
   -- Pre: the node indices in the arc list are in the graph.
   removeArcs :: [(Int, Int)] -> a -> a
 
@@ -127,6 +129,7 @@ class Graph a where
 
 
 -- Representing a graph as an adjacency matrix
+-- TODO: Optimise it with IntMap
 data GraphMatrix = MGraph 
   { nodeNumM :: Int
   , nodesM :: Seq Int
@@ -167,8 +170,8 @@ instance Eq GraphMatrix where
 instance Graph GraphMatrix where
   emptyGraph = MGraph 0 empty empty
 
-  addArcs arcs (MGraph size nodes mat)
-    = MGraph size nodes $ addArcs' mat arcs
+  addArcs arcs (MGraph sz nodes mat)
+    = MGraph sz nodes $ addArcs' mat arcs
     where
       addArcs' m []
         = m
@@ -183,26 +186,26 @@ instance Graph GraphMatrix where
           nI'  = fromJust $ elemIndexL n' nodes
 
   addNodes nodes g
-    = MGraph size' nodes' arcs'
+    = MGraph sz' nodes' arcs'
     where
       -- Removes the nodes from the argument that are already in the graph.
       nodesF = Prelude.filter (isNothing . flip elemIndexL (nodesM g)) nodes
-      size'  = size + length nodesF
+      sz'  = sz + length nodesF
       -- (><) is concatenation.
       nodes' = nodesM g >< fromList nodesF
-      size   = nodeNumM g
+      sz   = nodeNumM g
       -- Basically, add new empty rows to the bottom of the matrix, then add
       -- new empty columns to the right of the matrix.
       arcs'  = execState (
-        forM_ [size..(size' - 1)] insertRow
-        ) $ execState (forM_ [size..(size' - 1)] insertEle) <$> nodeMat g
+        forM_ [sz..(sz' - 1)] insertRow
+        ) $ execState (forM_ [sz..(sz' - 1)] insertEle) <$> nodeMat g
       insertEle i
         = state $ \s -> ((), insertAt i 0 s)
       insertRow i
-        = state $ \s -> ((), insertAt i (replicate size' 0) s)
+        = state $ \s -> ((), insertAt i (replicate sz' 0) s)
 
-  removeArcs arcs (MGraph size nodes mat)
-    = MGraph size nodes $ removeArcs' mat arcs
+  removeArcs arcs (MGraph sz nodes mat)
+    = MGraph sz nodes $ removeArcs' mat arcs
     where
       removeArcs' m []
         = m
@@ -218,9 +221,9 @@ instance Graph GraphMatrix where
 
   removeNodes [] g
     = g
-  removeNodes (n : ns) g@(MGraph size nodes arcs)
+  removeNodes (n : ns) g@(MGraph sz nodes arcs)
     | notIn     = removeNodes ns g
-    | otherwise = removeNodes ns (MGraph (size - 1) nodes' arcs')
+    | otherwise = removeNodes ns (MGraph (sz - 1) nodes' arcs')
     where
       notIn  = isNothing index
       index  = elemIndexL n nodes
@@ -231,8 +234,8 @@ instance Graph GraphMatrix where
       -- Removal helper
       del    = deleteAt (fromJust index)
       
-  simplify (MGraph size nodes arcs)
-    = MGraph size nodes $ mapWithIndex (mapWithIndex . simp) arcs
+  simplify (MGraph sz nodes arcs)
+    = MGraph sz nodes $ mapWithIndex (mapWithIndex . simp) arcs
     where
       simp r c i
         | r == c    = 0
@@ -271,28 +274,23 @@ data GraphList = LGraph
 
 instance Show GraphList where 
   show (LGraph _ list)
-    = "Nodes:\n" 
-    ++ show (toList $ keys list) 
-    ++ "\nAdjacency List:"
+    = "Nodes:\n" ++ show (toList $ keys list) ++ "\nAdjacency List:"
     ++ concatMap showEntry (keys list)
     where
-      showEntry key
-        = '\n' : show key ++ ": [" ++ showMap (list ! key) ++ "]"
+      showEntry k
+        = '\n' : show k ++ ": [" ++ showMap (list ! k) ++ "]"
       showMap m
         = intercalate ", " $ (\k -> show k ++ ": " ++ show (m ! k)) <$> (keys m)
 
 instance Eq GraphList where
   LGraph s l == LGraph s' l'
-    = s == s' && eq
-    where
-      k  = keys l
-      eq = and $ fmap (\s -> (l !? s) == (l' !? s)) k
+    = s == s' && (and $ fmap (\s -> (l !? s) == (l' !? s)) (keys l))
 
 instance Graph GraphList where
   emptyGraph = LGraph 0 $ fromAscList []
 
-  addArcs arcs (LGraph size list)
-    = LGraph size $ addArcs' list arcs
+  addArcs arcs (LGraph sz list)
+    = LGraph sz $ addArcs' list arcs
     where
       addArcs' l []
         = l
@@ -300,19 +298,19 @@ instance Graph GraphList where
         = addArcs' (adjust updateEntry n l) as
         where
           updateEntry m
-            | member n' m = adjust (+1) n' m
-            | otherwise   = insert n' 1 m
+            | notMember n' l = m
+            | member n' m    = adjust (+1) n' m
+            | otherwise      = insert n' 1 m
 
   addNodes [] g
     = g
-  addNodes (n : ns) g@(LGraph size list)
+  addNodes (n : ns) g@(LGraph sz list)
     | member n list = addNodes ns g
-    | otherwise     = addNodes ns $ LGraph (size + 1) (insert n empMap list)
-    where
-      empMap = fromAscList []
+    | otherwise     
+      = addNodes ns $ LGraph (sz + 1) (insert n (fromAscList []) list)
 
-  removeArcs arcs (LGraph size list)
-    = LGraph size $ removeArcs' list arcs
+  removeArcs arcs (LGraph sz list)
+    = LGraph sz $ removeArcs' list arcs
     where
       removeArcs' l []
         = l
@@ -327,41 +325,32 @@ instance Graph GraphList where
 
   removeNodes [] g
     = g
-  removeNodes (n : ns) g@(LGraph size list)
-    | member n list = removeNodes ns $ LGraph (size - 1) l'
-    | otherwise     = removeNodes ns g
-    where
-      l' = map (delete n) (delete n list)
+  removeNodes (n : ns) g@(LGraph sz list)
+    | member n list 
+      = removeNodes ns $ LGraph (sz - 1) (map (delete n) (delete n list))
+    | otherwise = removeNodes ns g
 
-  simplify (LGraph size list)
-    = LGraph size (mapWithKey nub' list)
-    where
-      -- Removes all duplicates (parallels) as well as the key (loops)
-      nub' k m
-        = map (const 1) $ delete k m
+  simplify (LGraph sz list)
+    = LGraph sz (mapWithKey ((map (const 1) .) . delete) list)
 
-  isDisconnectedAt n (LGraph _ list)
-    = null (list ! n)
+  isDisconnectedAt = (null .) . flip ((!) . nodeList)
 
   nodes = keys . nodeList
 
   numNodes = nodeNumL
 
-  inDegree n (LGraph _ list)
-    = sum $ fmap ((maybe 0 id) . (!? n)) list
+  inDegree = (sum .) . (. nodeList) . fmap . (maybe 0 id .) . flip (!?)
 
-  outDegree n (LGraph _ list)
-    = length (list ! n)
+  outDegree = (length .) . flip ((!) . nodeList)
 
   degree = outDegree
 
-  neighbours n (LGraph _ list)
-    = keys (list ! n)
+  neighbours = (keys .) . flip ((!) . nodeList)
   
 
 -- Transitions between matrix and list
 listToMat :: GraphList -> GraphMatrix
-listToMat (LGraph size list)
+listToMat (LGraph sz list)
   = initGraph nodes arcs
   where
     nodes = keys list
@@ -370,11 +359,10 @@ listToMat (LGraph size list)
       = concat $ (\k -> [1..(m ! k)] >> [k]) <$> (keys m)
 
 matToList :: GraphMatrix -> GraphList
-matToList (MGraph size nodes arcs)
+matToList (MGraph sz nodes arcs)
   = initGraph (toList nodes) arcs'
   where
     ind   = index nodes
     arcs' = concatMap (uncurry ((. toList) . decode)) (zip [0..] $ toList arcs)
     decode i row
-      -- [1..n] >> [k] means Data.List.replicate s k;
       = concatMap (\(j, s) -> [1..s] >> [(ind i, ind j)]) (zip [0..] row)
