@@ -2,6 +2,8 @@
 
 -- Examples of creating graphs and applying algorithms
 
+import           Data.Maybe
+
 import           Graph
 import           Search
 
@@ -144,7 +146,32 @@ k33BFSNodes = breadthFirstNodes 1 k33List
     -- Nothing
 
 
--- More examples
+-- Demo for topological sorting:
+-- Topological sorting on a directed acyclic graph is defined as an ordering of
+-- its nodes, such that if node i is "greater" than node j, then there is no
+-- path from i to j.
+-- It is commonly used to describe a list of tasks, where some taske must be
+-- completed before others.
+procedures :: GraphList
+procedures = initGraph [1..7] [(1, 2), (6, 2), (2, 7), (2, 5), (3, 4), (4, 5)]
+-- The graph above looks like this:   
+  --               1 ---> 2 ----------> 7
+  --        6 ----------> 2 ---> 5
+  -- 3 ----------> 4 ----------> 5
+
+topologicallySortedProcedures :: [Int]
+topologicallySortedProcedures = fromJust $ topologicalSort procedures
+
+-- in ghci
+  -- topologicallySortedProcedures
+    -- [6,3,4,1,2,7,5]
+-- If we sort an undirected graph, it will return nothing because it cannot
+-- establish the sense of direction between nodes.
+  -- topologicalSort k4m
+    -- Nothing
+
+
+-- More examples on Search
 k5DFS :: SearchResult GraphList
 k5DFS = depthFirst 3 k5List
 -- Through Depth-First Search, the K5 graph is spanned by a linear tree.

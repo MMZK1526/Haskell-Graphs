@@ -126,38 +126,43 @@ isConnected graph
 distance :: Graph a => Int -> Int -> a -> Maybe Int
 distance = flip . (((!?) . fst) .) . breadthFirst
 
--- Topological sorting from a given root.
--- Pre: The root is in the graph
+-- Topological sorting of a directed acyclic graph.
+-- If the graph contains a cycle, will return nothing
 topologicalSort :: Graph a => a -> Maybe [Int]
 topologicalSort graph
   = F.toList <$> (snd <$> (execState tSortS initial))
   where
+    -- Contains sets of visited nodes (first pass), exited nodes (last pass),
+    -- and a list of topologically ordered nodes. Starts with all empty.
     initial   = Just ((fromDescList [], fromDescList []), fromList [])
+    -- Runs the Depth-First Search on each of the nodes.
     tSortS    = forM_ (nodes graph) tSortS'
     tSortS' x = do
       raw <- get
+      -- runWhenJust returns () when the input is Nothing, and applies the
+      -- following function when the input is a Just.
       runWhenJust raw (\((nIn, nOut), ts) -> do
+        -- If a node is visited, ignore it since it's in the list by this point.
         if S.member x nIn
           then return ()
           else do
             let nIn' = S.insert x nIn
             put $ Just ((nIn', nOut), ts)
+            -- Recursively apply the search on all nodes after the current one.
             forM_ (neighbours x graph) (\y -> do
               raw <- get
               runWhenJust raw (\((nIn, nOut), ts) -> 
                 if S.member y nIn
                   then if not $ S.member y nOut
-                    then put Nothing
+                    then put Nothing    -- Cycle detected
                     else return ()
                   else tSortS' y
                 )
               )
+            -- All nodes after the given node is visited (and exited) by now,
+            -- then we can put this node into the list of ordered nodes.
             raw <- get
             runWhenJust raw (\((nIn, nOut), ts) -> do
               put $ Just ((nIn, S.insert x nOut), insertAt 0 x ts)
               )
             )
-
-
-foo :: GraphList
-foo = initGraph [1..7] [(1, 2), (6, 2), (2, 7), (2, 5), (3, 4), (4, 5)]
