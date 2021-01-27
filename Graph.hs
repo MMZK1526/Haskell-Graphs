@@ -6,6 +6,7 @@ module Graph where
 
 -- Introduces the two representations of graphs (adjacency matrix/list).
 -- Provides initialisers and modifiers.
+-- The list version is more efficient and should be preferred over the matrix.
 
 import           Control.Monad
 import           Control.Monad.Trans.State
@@ -49,17 +50,17 @@ class Graph a where
   
   -- Initialises the graph by having the nodes from the first argument
   -- and the arcs specified by the list of pairs in the second argument,
-  -- e.g. initMGraph [0, 1, 2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
+  -- e.g. initUGraph [0, 1, 2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
   -- builds the K3 graph, which has 3 nodes (indexed 0, 1 and 2) and they
   -- connect with each other.
   -- Note that the graph is directed by default, which means that 
   -- initGraph [0, 1, 2] [(0, 1), (0, 2), (1, 2)] builds 
   -- an ordered graph that has arcs only from smaller nodes to greater ones.
-  -- Pre: the node indices in the arc list < the number of nodes of the graph.
+  -- Pre: the nodes in the arc list are in node list.
   initGraph :: [Int] -> [(Int, Int)] -> a
   initGraph = flip addArcs . flip addNodes emptyGraph
 
-  -- Similar to above, but initialise an undirected graph.
+  -- Similar to above, but initialises an undirected graph.
   initUGraph :: [Int] -> [(Int, Int)] -> a
   initUGraph nodes arcs
     = initGraph nodes (arcs ++ fmap swap arcs)
@@ -83,7 +84,7 @@ class Graph a where
   -- Pre: the node indices in the arc list are in the graph.
   removeArcs :: [(Int, Int)] -> a -> a
 
-  -- Similar to above, but undirected (removing both n to n' and n' to n).
+  -- Similar to above, but undirected (removes both n to n' and n' to n).
   -- Pre: the node indices in the arc list are in the graph.
   removeUArcs :: [(Int, Int)] -> a -> a
   removeUArcs arcs g
@@ -129,7 +130,6 @@ class Graph a where
 
 
 -- Representing a graph as an adjacency matrix
--- TODO: Optimise it with IntMap
 data GraphMatrix = MGraph 
   { nodeNumM :: Int
   , nodesM :: Seq Int
@@ -366,3 +366,10 @@ matToList (MGraph sz nodes arcs)
     arcs' = concatMap (uncurry ((. toList) . decode)) (zip [0..] $ toList arcs)
     decode i row
       = concatMap (\(j, s) -> [1..s] >> [(ind i, ind j)]) (zip [0..] row)
+
+
+-- Utilities
+runWhenJust :: Maybe a -> (a -> State (Maybe a) ()) -> State (Maybe a) ()
+runWhenJust m f
+  | isNothing m = return ()
+  | otherwise   = f (fromJust m)
