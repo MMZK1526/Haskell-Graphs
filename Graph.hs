@@ -55,6 +55,11 @@ class Graph a where
   initUGraph nodes arcs
     = initGraph nodes (arcs ++ fmap swap arcs)
 
+  -- Initialise a weighted graph, where the second argument has the form of
+  -- ((node1, node2), weight)
+  initWGraph :: [Int] -> [((Int, Int), Int)] -> a
+  initWGraph = flip addWArcs . flip addNodes emptyGraph
+
   -- Adds the arcs specified by the list of pairs in the second argument.
   -- If the graph is considered as a weighted graph, this adds the weight of
   -- the arcs by 1.
@@ -171,8 +176,7 @@ instance Graph GraphList where
         where
           updateEntry m
             | notMember n' l = m
-            | notMember n' m = insert n' 1 m
-            | m ! n' == -w   = delete n' m
+            | notMember n' m = insert n' w m
             | otherwise      = adjust (+w) n' m
 
   addNodes [] g

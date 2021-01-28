@@ -30,7 +30,7 @@ procedures = initGraph [1..7] [(1, 2), (6, 2), (2, 7), (2, 5), (3, 4), (4, 5)]
   --        6 ----------> 2 ---> 5
   -- 3 ----------> 4 ----------> 5
 
--- We can print it out in ghci
+-- We can print them out in ghci:
   -- k33
     -- Nodes:
     -- [1,2,3,4,5,6]
@@ -59,6 +59,25 @@ procedures = initGraph [1..7] [(1, 2), (6, 2), (2, 7), (2, 5), (3, 4), (4, 5)]
     -- Just 1
 
 
+-- Example of weighted graph
+wGraphExp :: GraphList
+wGraphExp = initWGraph [1..3] [((1, 2), 0), ((1, 3), 1),((2, 3), 2)]
+
+-- In ghci:
+  -- wGraphExp
+    -- Nodes:
+    -- [1,2,3]
+    -- Adjacency List:
+    -- 1: [2: 0, 3: 1]
+    -- 2: [3: 2]
+    -- 3: []
+-- Note that there is an arc between 1 and 2 with weight of zero, that does not
+-- mean there is no arc between 1 and 2!
+  -- neighbours 1 wGraphExp
+    -- [2,3]
+-- 2 is a neighbour of 1 despite that the weight of the arc (1, 2) is zero.
+
+
 -- Some other graphs for testing purpose:
 
 -- K5 graph
@@ -84,7 +103,7 @@ k33DFSTree = depthFirstTree 1 k33
 k33DFSNodes :: [(Int, Int)]
 k33DFSNodes = depthFirstNodes 1 k33
 
--- in ghci:
+-- In ghci:
   -- k33DFSTree
     -- Nodes:
     -- [1,2,3,4,5,6]
@@ -111,7 +130,7 @@ k33BFSTree = breadthFirstTree 1 k33
 k33BFSNodes :: [(Int, Int)]
 k33BFSNodes = breadthFirstNodes 1 k33
 
--- in ghci:
+-- In ghci:
   -- k33BFSTree
     -- Nodes:
     -- [1,2,3,4,5,6]
@@ -157,7 +176,7 @@ k33BFSNodes = breadthFirstNodes 1 k33
 topologicallySortedProcedures :: [Int]
 topologicallySortedProcedures = fromJust $ topologicalSort procedures
 
--- in ghci
+-- In ghci:
   -- topologicallySortedProcedures
     -- [6,3,4,1,2,7,5]
 -- If we sort an undirected graph, it will return nothing because it cannot
