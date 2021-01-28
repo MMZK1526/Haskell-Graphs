@@ -31,7 +31,7 @@ lpm = initUGraph [1..3] [(1, 1), (2, 2), (3, 3)]
 prm = initUGraph [1..3] [(1, 2), (1, 2)]
 
 
--- Representing a graph as an adjacency matrix
+-- Representing a graph as an Adjacency Matrix
 data GraphMatrix = MGraph 
   { nodeNumM :: Int
   , nodesM :: Seq Int
@@ -45,7 +45,7 @@ instance Show GraphMatrix where
     ++ "\nAdjacency Matrix:"
     ++ concatMap (('\n' : ) . show . toList) arcs
 
--- For two graphs in adjacency matrix to be equal, we need them to have the same
+-- For two graphs in Adjacency Matrix to be equal, we need them to have the same
 -- set of nodes (order does not matter), and the same arcs between nodes.
 -- When the nodes are listed in a different order, the matrices will also be
 -- different even when the graphs may be the same, therefore, we cannot depend 

@@ -136,7 +136,7 @@ class Graph a where
   neighbours :: Int -> a -> [Int]
 
 
--- Representing a graph as an adjacency list.
+-- Representing a graph as an Adjacency List.
 -- Note that an undirected loop is stored twice,
 -- e.g. the arc (4, 4) is the represented as 4: [4: 2] instead of 4: [4: 1].
 data GraphList = LGraph 

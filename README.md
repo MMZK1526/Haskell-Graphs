@@ -5,7 +5,7 @@ Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms.
 For a quick guide on the algorithms, check out Example.hs  
 
 # Graph.hs
-Implements graph using adjacency matrix and adjacency list   
+Implements graph using Adjacency List   
 Provides a type class for graphs  
 
 # Search
