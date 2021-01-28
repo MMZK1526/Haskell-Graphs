@@ -32,7 +32,8 @@ prl = initUGraph [1..3] [(1, 2), (1, 2)]
 
 
 -- A type class for graphs; suitable for both directed and undirected.
--- Also compatible with weighted simple graph
+-- Also compatible with integer-weighted simple graph. One can interpret 
+-- an arc of weight two as EITHER a weighted arc OR a parallel.
 class Graph a where
   -- Returns the empty graph with no nodes and arcs.
   emptyGraph :: a
@@ -55,6 +56,8 @@ class Graph a where
     = initGraph nodes (arcs ++ fmap swap arcs)
 
   -- Adds the arcs specified by the list of pairs in the second argument.
+  -- If the graph is considered as a weighted graph, this adds the weight of
+  -- the arcs by 1.
   -- Pre: the node indices in the arc list are in the graph.
   addArcs :: [(Int, Int)] -> a -> a
   addArcs = addWArcs . (flip (,) 1 <$>)
@@ -73,8 +76,9 @@ class Graph a where
   -- There are no arcs between the new nodes
   addNodes :: [Int] -> a -> a
 
-  -- If the arc has parallels (or weight > 1, depending on the interpretation),
-  -- removeArcs removes exactly 1 arc rather than breaking the connection.
+  -- Remove the given arcs with all of its parallels.
+  -- Note that an arc with weight zero is not an arc that doesn't exist,
+  -- Thus use setWeights to set weights to zero if that is the goal.
   -- Pre: the node indices in the arc list are in the graph.
   removeArcs :: [(Int, Int)] -> a -> a
 
@@ -84,16 +88,12 @@ class Graph a where
   removeUArcs arcs g
     = removeArcs (arcs ++ fmap swap arcs) g
 
-  -- Remove the given arcs with all of its parallels, i.e. set weight to zero.
-  -- Pre: the node indices in the arc list are in the graph.
-  removeArcsFully :: [(Int, Int)] -> a -> a
-  removeArcsFully = setWeights . (flip (,) 0 <$>)
-
   removeNodes :: [Int] -> a -> a
 
-  -- Returns the weight of a given arc
+  -- Returns the weight of a given arc.
+  -- If the arc does not exist, returns Nothing.
   -- Pre: the nodes in the arc are in the graph.
-  weight :: (Int, Int) -> a -> Int
+  weight :: (Int, Int) -> a -> Maybe Int
 
   -- Sets the weight of the given arc.
   -- Pre: the node indices in the arc list are in the graph.
@@ -119,11 +119,11 @@ class Graph a where
   numNodes :: a -> Int
   numNodes = length . nodes
 
-  -- The in degree of a node in a directed graph.
+  -- The in degree of a node in a directed graph (weighted).
   -- Pre: the node is in the graph.
   inDegree :: Int -> a -> Int
 
-  -- The out degree of a node in a directed graph.
+  -- The out degree of a node in a directed graph (weighted).
   -- Pre: the node is in the graph.
   outDegree :: Int -> a -> Int
 
@@ -188,13 +188,8 @@ instance Graph GraphList where
       removeArcs' l []
         = l
       removeArcs' l ((n, n') : as)
-        | member n l = removeArcs' (adjust updateEntry n l) as
+        | member n l = removeArcs' (adjust (delete n') n l) as
         | otherwise  = removeArcs' l as
-        where
-          updateEntry m
-            | notMember n' m = m
-            | m ! n' == 1    = delete n' m
-            | otherwise      = adjust (+ (-1)) n' m
 
   removeNodes [] g
     = g
@@ -213,17 +208,13 @@ instance Graph GraphList where
         where
           updateEntry m
             | notMember n' l = m
-            | notMember n' m = if w /= 0
-              then insert n' w m
-              else m
-            | otherwise      = if w /= 0
-              then adjust (const w) n' m 
-              else delete n' m
+            | notMember n' m = insert n' w m
+            | otherwise      = adjust (const w) n' m 
 
   weight (n, n') (LGraph _ list)
-    | notMember n list = 0
-    | notMember n' row = 0
-    | otherwise        = row ! n'
+    | notMember n list = Nothing
+    | notMember n' row = Nothing
+    | otherwise        = Just $ row ! n'
     where
       row = list ! n
 
@@ -238,7 +229,7 @@ instance Graph GraphList where
 
   inDegree = (sum .) . (. nodeList) . fmap . (maybe 0 id .) . flip (!?)
 
-  outDegree = (length .) . flip ((!) . nodeList)
+  outDegree = (maybe 0 id .) . flip ((!?) . (sum <$>) . nodeList)
 
   degree = outDegree
 

@@ -2,7 +2,8 @@
 
 -- This file contains the Ajacency Matrix representation of graphs.
 -- It is deprecated because it's much less efficient than the modified
--- Ajacency List representation.
+-- Ajacency List representation, and it cannot tell apart an arc with weight 0
+-- and an arc that does not exist.
 
 import           Control.Monad
 import           Control.Monad.Trans.State
@@ -31,7 +32,7 @@ lpm = initUGraph [1..3] [(1, 1), (2, 2), (3, 3)]
 prm = initUGraph [1..3] [(1, 2), (1, 2)]
 
 
--- Representing a graph as an Adjacency Matrix
+-- Representing a graph as an adjacency matrix
 data GraphMatrix = MGraph 
   { nodeNumM :: Int
   , nodesM :: Seq Int
@@ -45,7 +46,7 @@ instance Show GraphMatrix where
     ++ "\nAdjacency Matrix:"
     ++ concatMap (('\n' : ) . show . toList) arcs
 
--- For two graphs in Adjacency Matrix to be equal, we need them to have the same
+-- For two graphs in adjacency matrix to be equal, we need them to have the same
 -- set of nodes (order does not matter), and the same arcs between nodes.
 -- When the nodes are listed in a different order, the matrices will also be
 -- different even when the graphs may be the same, therefore, we cannot depend 

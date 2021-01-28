@@ -52,6 +52,11 @@ procedures = initGraph [1..7] [(1, 2), (6, 2), (2, 7), (2, 5), (3, 4), (4, 5)]
     -- 5: []
     -- 6: [2: 1]
     -- 7: []
+-- Note that since the given graph is unweighted, the weight is default to 1.
+  -- weight (1, 2) k33
+    -- Nothing
+  -- weight (1, 4) k33
+    -- Just 1
 
 
 -- Some other graphs for testing purpose:
