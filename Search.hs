@@ -43,11 +43,10 @@ depthFirstS x graph allowCycle fEnter fExit
     ((nIn, nOut), mb) <- get
     -- runWhenJust returns () when the input is Nothing, and applies the
     -- following function when the input is a Just.
-    runWhenJust mb (\a -> if S.member x nIn
+    runWhenJust mb (if S.member x nIn
       then return ()
       else do
-        let a' = execState (fEnter x) mb
-        put ((S.insert x nIn, nOut), a')
+        put ((S.insert x nIn, nOut), execState (fEnter x) mb)
         forM_ (neighbours x graph) (\y -> if S.member y nIn
           then if not $ S.member y nOut || allowCycle
             then put ((S.insert x nIn, nOut), Nothing)
@@ -55,10 +54,7 @@ depthFirstS x graph allowCycle fEnter fExit
           else dfs y
           )
         ((nIn, nOut), mb) <- get
-        runWhenJust mb (\a -> do
-          let a' = execState (fExit x) mb
-          put ((nIn, S.insert x nOut), a')
-          )
+        runWhenJust mb (put ((nIn, S.insert x nOut), execState (fExit x) mb))
       )
 
 -- Traverses the graph using Depth-First Search from a given node
@@ -129,32 +125,33 @@ breadthFirstS :: Graph a
   -> State ((Set Int, Seq Int), (Maybe b)) ()
 breadthFirstS x graph fEnter fExit = do
   ((nIn, queue), mb) <- get
-  put ((S.insert x nIn, insertAt 0 x queue), execState (fEnter x) mb)
-  bfs
+  if S.member x nIn
+    then return ()
+    else do
+      put ((S.insert x nIn, insertAt 0 x queue), execState (fEnter x) mb)
+      bfs
   where
-    bfs       = do
+    bfs = do
       ((nIn, queue), mb) <- get
       if queue == empty
         then return ()
         else do
           let (q :<| qs) = queue
-          runWhenJust mb (\a -> do
+          runWhenJust mb (do
             put ((nIn, queue), execState (fExit q) mb)
             )
           ((nIn, queue), mb) <- get
-          runWhenJust mb (\a -> do
+          runWhenJust mb (do
             put ((nIn, qs), mb)
-            forM_ (neighbours q graph) updateS
+            forM_ (neighbours q graph) (\x -> do
+              ((nIn, qs), mb) <- get
+              runWhenJust mb (if S.member x nIn
+                then return ()
+                else put ((S.insert x nIn, qs |> x), execState (fEnter x) mb)
+                )
+              )
             )
           bfs
-    updateS x = do
-      ((nIn, qs), mb) <- get
-      runWhenJust mb (\a -> if S.member x nIn
-        then return ()
-        else do
-          let a' = execState (fEnter x) mb
-          put ((S.insert x nIn, qs >< fromList [x]), a')
-        )
 
 -- Traverses the graph using Breadth-First Search from a given node
 -- and returns the list of passed nodes and their depths
