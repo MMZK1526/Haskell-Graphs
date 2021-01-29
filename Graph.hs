@@ -241,7 +241,10 @@ instance Graph GraphList where
 
 
 -- Utilities
-runWhenJust :: Maybe a -> (a -> State (Maybe a) ()) -> State (Maybe a) ()
+
+-- runWhenJust returns () when the input is Nothing, and applies the
+-- following function when the input is a Just.
+runWhenJust :: Maybe a -> (a -> State b ()) -> State b ()
 runWhenJust m f
   | isNothing m = return ()
   | otherwise   = f (fromJust m)

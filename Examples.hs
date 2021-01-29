@@ -115,7 +115,7 @@ k33DFSNodes = depthFirstNodes 1 k33
     -- 5: [2: 1, 3: 1]
     -- 6: [3: 1]
   -- k33DFSNodes
-    -- [(1,0),(2,2),(3,4),(4,1),(5,3),(6,5)]
+    -- [(6,5),(3,4),(5,3),(2,2),(4,1),(1,0)]
 -- We can check that the spanning tree is indeed a tree,
 -- and the depths are correct.
 
@@ -186,8 +186,11 @@ topologicallySortedProcedures = fromJust $ topologicalSort procedures
 
 
 -- More examples on Search
-k5DFS :: SearchResult GraphList
-k5DFS = depthFirst 3 k5
+k5DFSNodes :: [(Int, Int)]
+k5DFSNodes = depthFirstNodes 3 k5
+
+k5DFSTree :: GraphList
+k5DFSTree = depthFirstTree 3 k5
 -- Through Depth-First Search, the K5 graph is spanned by a linear tree.
 
 k5BFS :: SearchResult GraphList

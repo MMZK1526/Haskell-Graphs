@@ -17,7 +17,7 @@ import           Data.IntMap.Lazy as IM
   , (!), (!?)
   )
 import           Data.Sequence hiding (length, null, (!?))
-import           Data.Set as S (fromDescList, insert, member, size)
+import           Data.Set as S (Set(..), fromDescList, insert, member, size)
 import           Prelude hiding (filter)
 
 import           Graph
@@ -29,42 +29,100 @@ type SearchResult a = (IntMap Int, a)
 
 -- Functions
 
--- Traverses the graph using Depth-First Search from a given node
--- and returns the corresponding spanning tree.
--- Pre: The given node is in the graph.
-depthFirstTree :: Graph a => Int -> a -> a
-depthFirstTree = (snd .) . depthFirst
+-- A State that simulates Depth-First Search.
+-- This function is convoluted and is not necessary unless you need to do custom
+-- actions during the Depth-First Search.
+-- See full documentation in README.md.
+depthFirstS 
+  :: Graph a 
+  => Int 
+  -> a 
+  -> Bool 
+  -> (Int -> State (Maybe b) ()) 
+  -> (Int -> State (Maybe b) ()) 
+  -> State ((Set Int, Set Int), (Maybe b)) ()
+depthFirstS x graph allowCycle fEnter fExit
+  = dfs x
+  where
+    dfs x = do
+    ((nIn, nOut), mb) <- get
+    -- runWhenJust returns () when the input is Nothing, and applies the
+    -- following function when the input is a Just.
+    runWhenJust mb (\a -> if S.member x nIn
+      then return ()
+      else do
+        let a' = execState (fEnter x) (Just a)
+        put ((S.insert x nIn, nOut), a')
+        forM_ (neighbours x graph) (\y -> if S.member y nIn
+          then if not $ S.member y nOut || allowCycle
+            then put ((S.insert x nIn, nOut), Nothing)
+            else return ()
+          else dfs y
+          )
+        ((nIn, nOut), mb) <- get
+        runWhenJust mb (\a -> do
+          let a' = execState (fExit x) (Just a)
+          put ((nIn, S.insert x nOut), a')
+          )
+      )
 
 -- Traverses the graph using Depth-First Search from a given node
 -- and returns the list of passed nodes and their depths
 -- Pre: The given node is in the graph.
 depthFirstNodes :: Graph a => Int -> a -> [(Int, Int)]
-depthFirstNodes = ((IM.toList . fst) .) . depthFirst
+depthFirstNodes n graph
+  = snd $ fromJust (snd (execState (dfn n) initial))
+  where
+    -- Contains sets of visited nodes (first pass), exited nodes (last pass),
+    -- and a list of nodes with their depth. Starts with all empty.
+    initial = ((fromDescList [], fromDescList []), Just (0, []))
+    dfn x   = depthFirstS x graph True (\n -> do
+      raw <- get
+      let (d, ns) = fromJust raw
+      put $ Just (d + 1, (n, d) : ns)
+      ) (const $ do
+      raw <- get
+      let (d, ns) = fromJust raw
+      put $ Just (d - 1, ns)
+      )
 
 -- Traverses the graph using Depth-First Search from a given node
--- Returns a tuple containing a map <node, depth> and
--- the corresponding spanning tree.
+-- and returns the corresponding spanning tree.
 -- Pre: The given node is in the graph.
-depthFirst :: Graph a => Int -> a -> SearchResult a
-depthFirst n graph
-  = dfs (fromAscList []) n (initGraph (nodes graph) []) 0 []
+depthFirstTree :: Graph a => Int -> a -> a
+depthFirstTree n graph
+  = snd $ fromJust (snd (execState (dfn n) initial))
   where
-    dfs dMap n g depth stack
-      = dfs' (fromList $ neighbours n graph) stack
-      where
-        dMap' = IM.insert n depth dMap
-        g'    = addUArcs [(head stack, n)] g
-        dfs' Empty []
-          | IM.member n dMap = (dMap, g)
-          | otherwise        = (dMap', g)
-        dfs' Empty (st : sts)
-          | IM.member n dMap = dfs dMap' st g (depth - 1) sts
-          | otherwise     = dfs dMap' st g' (depth - 1) sts
-        dfs' (n' :<| ns) stack
-          | IM.member n' dMap = dfs' ns stack
-          | IM.member n dMap  = dfs dMap n' g (depth + 1) (n : stack)
-          | null stack        = dfs dMap' n' g (depth + 1) (n : stack)
-          | otherwise         = dfs dMap' n' g' (depth + 1) (n : stack)
+    -- Contains sets of visited nodes (first pass), exited nodes (last pass),
+    -- and a graph that builds towards the spanning tree.
+    initial    = ((fromDescList [], fromDescList []), Just ([], startGraph))
+    startGraph = initGraph (nodes graph) []
+    dfn x      = depthFirstS x graph True (\n -> do
+      raw <- get
+      let (st, g) = fromJust raw
+      if null st
+        then put $ Just (n : st, g)
+        else put $ Just (n : st, addUArcs [(head st, n)] g)
+      ) (const $ do
+      raw <- get
+      let (st, g) = fromJust raw
+      put $ Just (tail st, g)
+      )
+
+-- Topological sorting of a directed acyclic graph.
+-- If the graph contains a cycle, will return nothing
+topologicalSort :: Graph a => a -> Maybe [Int]
+topologicalSort graph
+  = F.toList <$> (snd (execState (forM_ (nodes graph) tSortS) initial))
+  where
+    -- Contains sets of visited nodes (first pass), exited nodes (last pass),
+    -- and a list of topologically ordered nodes. Starts with all empty.
+    initial  = ((fromDescList [], fromDescList []), Just $ fromList [])
+    -- Runs the Depth-First Search on each of the nodes.
+    tSortS x = depthFirstS x graph False (const $ return ()) (\n -> do
+      raw <- get
+      put $ Just (insertAt 0 n $ fromJust raw)
+      )
 
 -- Traverses the graph using Breadth-First Search from a given node
 -- and returns the corresponding spanning tree.
@@ -125,44 +183,3 @@ isConnected graph
 -- Pre: The given nodes are in the graph.
 distance :: Graph a => Int -> Int -> a -> Maybe Int
 distance = flip . (((!?) . fst) .) . breadthFirst
-
--- Topological sorting of a directed acyclic graph.
--- If the graph contains a cycle, will return nothing
-topologicalSort :: Graph a => a -> Maybe [Int]
-topologicalSort graph
-  = F.toList <$> (snd <$> (execState tSortS initial))
-  where
-    -- Contains sets of visited nodes (first pass), exited nodes (last pass),
-    -- and a list of topologically ordered nodes. Starts with all empty.
-    initial   = Just ((fromDescList [], fromDescList []), fromList [])
-    -- Runs the Depth-First Search on each of the nodes.
-    tSortS    = forM_ (nodes graph) tSortS'
-    tSortS' x = do
-      raw <- get
-      -- runWhenJust returns () when the input is Nothing, and applies the
-      -- following function when the input is a Just.
-      runWhenJust raw (\((nIn, nOut), ts) -> do
-        -- If a node is visited, ignore it since it's in the list by this point.
-        if S.member x nIn
-          then return ()
-          else do
-            let nIn' = S.insert x nIn
-            put $ Just ((nIn', nOut), ts)
-            -- Recursively apply the search on all nodes after the current one.
-            forM_ (neighbours x graph) (\y -> do
-              raw <- get
-              runWhenJust raw (\((nIn, nOut), ts) -> 
-                if S.member y nIn
-                  then if not $ S.member y nOut
-                    then put Nothing    -- Cycle detected
-                    else return ()
-                  else tSortS' y
-                )
-              )
-            -- All nodes after the given node is visited (and exited) by now,
-            -- then we can put this node into the list of ordered nodes.
-            raw <- get
-            runWhenJust raw (\((nIn, nOut), ts) -> do
-              put $ Just ((nIn, S.insert x nOut), insertAt 0 x ts)
-              )
-            )
