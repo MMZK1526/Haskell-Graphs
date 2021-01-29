@@ -23,10 +23,6 @@ import           Prelude hiding (filter)
 import           Graph
 
 
--- Type alias
-type SearchResult a = (IntMap Int, a)
-
-
 -- Functions
 
 -- A State that simulates Depth-First Search.
@@ -204,10 +200,9 @@ breadthFirstTree n graph
 -- Returns True if the graph is connected.
 isConnected :: Graph a => a -> Bool
 isConnected graph
-  = (sz == 0) || (snd (execState (bfs n) initial) == Just sz)
+  = (sz == 0) || (snd (execState (bfs (head $ nodes graph)) initial) == Just sz)
   where
     sz      = numNodes graph
-    n       = head $ nodes graph
     initial = ((fromDescList [], fromList []), Just 0)
     bfs n   = breadthFirstS n graph (\n -> do
       raw <- get

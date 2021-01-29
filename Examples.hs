@@ -201,4 +201,4 @@ k5BFSNodes = breadthFirstNodes 3 k5
 
 k5BFSTree :: GraphList
 k5BFSTree = breadthFirstTree 3 k5
--- Through Breadth-First Search, the K5 graph is spanned by a 1-depth tree.
+-- Through Breadth-First Search, the K5 graph is spanned by a depth-1 tree.
