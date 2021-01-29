@@ -105,16 +105,14 @@ Conducts topological sort on directed acylic graphs (DAG).
     * If True, then the search will continue when a cycle is encountered;  
     * Note that here an undirected arc is considered as a cycle as well.  
   * **Argument 4 (Int -> State (Maybe b) ()):**  
-    * This function will be called whenever the search passes a new node  
-    * for the FIRST time.  
+    * This function will be called whenever the search passes a new node for the FIRST time.  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
       * A State that updates the information;  
       * If it is Nothing, then the search will terminate.  
   * **Argument 5 (Int -> State (Maybe b) ()):**  
-    * This function will be called whenever the search passes a new node  
-    * for the LAST time.  
+    * This function will be called whenever the search passes a new node for the LAST time.  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
@@ -134,21 +132,19 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Argument 2 (Graph a => a):**  
     * The graph.  
   * **Argument 3 (Int -> State (Maybe b) ()):**  
-    * This function will be called whenever the search passes a new node  
-    * for the FIRST time.  
+    * This function will be called whenever the search passes a new node for the FIRST time (when the node is added into the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
       * A State that updates the information;  
       * If it is Nothing, then the search will terminate.  
   * **Argument 4 (Int -> State (Maybe b) ()):**  
-    * This function will be called whenever the search passes a new node  
-    * for the LAST time.  
+    * This function will be called whenever the search passes a new node for the LAST time (when the node is popped from the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
       * A State that updates the information;  
       * If it is Nothing, then the search will terminate.  
   * **Result:**  
-    * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search.  
+    * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search.  
   * Pre: The given node is in the graph.  
