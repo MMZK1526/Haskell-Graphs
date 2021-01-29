@@ -4,6 +4,9 @@
 
 import           Data.Maybe
 
+-- May require installation
+import           Data.IntMap.Lazy (IntMap(..))
+
 import           Graph
 import           Search
 
@@ -100,7 +103,7 @@ k33DFSTree = depthFirstTree 1 k33
 
 -- Again, choose node 1 as the root, conduct a Depth-First Search on the node
 -- and find the depths of each node.
-k33DFSNodes :: [(Int, Int)]
+k33DFSNodes :: IntMap Int
 k33DFSNodes = depthFirstNodes 1 k33
 
 -- In ghci:
@@ -115,7 +118,7 @@ k33DFSNodes = depthFirstNodes 1 k33
     -- 5: [2: 1, 3: 1]
     -- 6: [3: 1]
   -- k33DFSNodes
-    -- [(6,5),(3,4),(5,3),(2,2),(4,1),(1,0)]
+    -- fromList [(1,0),(2,2),(3,4),(4,1),(5,3),(6,5)]
 -- We can check that the spanning tree is indeed a tree,
 -- and the depths are correct.
 
@@ -127,7 +130,7 @@ k33BFSTree = breadthFirstTree 1 k33
 
 -- Again, choose node 1 as the root, conduct a Breadth-First Search on the node
 -- and find the depths of each node.
-k33BFSNodes :: [(Int, Int)]
+k33BFSNodes :: IntMap Int
 k33BFSNodes = breadthFirstNodes 1 k33
 
 -- In ghci:
@@ -142,7 +145,7 @@ k33BFSNodes = breadthFirstNodes 1 k33
     -- 5: [1: 1]
     -- 6: [1: 1, 2: 1, 3: 1]
   -- k33BFSNodes
-    -- [(1,0),(2,2),(3,2),(4,1),(5,1),(6,1)]
+    -- fromList [(1,0),(2,2),(3,2),(4,1),(5,1),(6,1)]
 -- We can check that the spanning tree is indeed a tree,
 -- and the depths are correct.
 
@@ -186,13 +189,16 @@ topologicallySortedProcedures = fromJust $ topologicalSort procedures
 
 
 -- More examples on Search
-k5DFSNodes :: [(Int, Int)]
+k5DFSNodes :: IntMap Int
 k5DFSNodes = depthFirstNodes 3 k5
 
 k5DFSTree :: GraphList
 k5DFSTree = depthFirstTree 3 k5
 -- Through Depth-First Search, the K5 graph is spanned by a linear tree.
 
-k5BFS :: SearchResult GraphList
-k5BFS = breadthFirst 3 k5
+k5BFSNodes :: IntMap Int
+k5BFSNodes = breadthFirstNodes 3 k5
+
+k5BFSTree :: GraphList
+k5BFSTree = breadthFirstTree 3 k5
 -- Through Breadth-First Search, the K5 graph is spanned by a 1-depth tree.
