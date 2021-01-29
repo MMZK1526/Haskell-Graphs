@@ -144,11 +144,6 @@ instance Graph GraphMatrix where
         | r == c    = 0
         | otherwise = min 1 i
 
-  isDisconnectedAt n (MGraph _ nodes arcs)
-    = null $ Data.Sequence.filter (/= 0) (arcs `index` i)
-    where
-      i = fromJust $ elemIndexL n nodes
-
   nodes = toList . nodesM
 
   numNodes = nodeNumM

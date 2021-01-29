@@ -12,8 +12,8 @@ import           Search
 -- Initialisation
 -------------------------------------------------------------------------------- 
 
--- Make an (undirected) K_{3,3} graph that has nodes 1, 2, .., 6
--- such that nodes 1, 2 and 3 does not conenct with each other;
+-- Make an (undirected) K_{3,3} graph that has nodes 1, 2, ..., 6
+-- such that nodes 1, 2 and 3 does not connect with each other;
 -- nodes 4, 5, and 6 does not connect with each other, but all other distinct
 -- nodes are connected.
 
@@ -25,7 +25,7 @@ k33
 
 procedures :: GraphList
 procedures = initGraph [1..7] [(1, 2), (6, 2), (2, 7), (2, 5), (3, 4), (4, 5)]
--- The graph above looks like this:   
+-- The (directed) graph above looks like this:   
   --               1 ---> 2 ----------> 7
   --        6 ----------> 2 ---> 5
   -- 3 ----------> 4 ----------> 5
@@ -169,8 +169,8 @@ k33BFSNodes = breadthFirstNodes 1 k33
 -- Topological sorting on a directed acyclic graph is defined as an ordering of
 -- its nodes, such that if node i is "greater" than node j, then there is no
 -- path from i to j.
--- It is commonly used to describe a list of tasks, where some taske must be
--- completed before others.
+-- It is commonly used to describe a list of tasks, where some of the tasks must 
+-- be completed before others.
 
 
 topologicallySortedProcedures :: [Int]
@@ -179,7 +179,7 @@ topologicallySortedProcedures = fromJust $ topologicalSort procedures
 -- In ghci:
   -- topologicallySortedProcedures
     -- [6,3,4,1,2,7,5]
--- If we sort an undirected graph, it will return nothing because it cannot
+-- If we sort an undirected graph, it will return Nothing because it cannot
 -- establish the sense of direction between nodes.
   -- topologicalSort k4m
     -- Nothing

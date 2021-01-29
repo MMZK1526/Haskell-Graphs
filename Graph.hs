@@ -52,8 +52,7 @@ class Graph a where
 
   -- Similar to above, but initialises an undirected graph.
   initUGraph :: [Int] -> [(Int, Int)] -> a
-  initUGraph nodes arcs
-    = initGraph nodes (arcs ++ fmap swap arcs)
+  initUGraph = flip addUArcs . flip initGraph []
 
   -- Initialise a weighted graph, where the second argument has the form of
   -- ((node1, node2), weight)
@@ -66,11 +65,10 @@ class Graph a where
   -- Pre: the node indices in the arc list are in the graph.
   addArcs :: [(Int, Int)] -> a -> a
   addArcs = addWArcs . (flip (,) 1 <$>)
+
   -- Similar to above, but the arcs are undirected (both n to n' and n' to n).
   -- Pre: the node indices in the arc list are in the graph.
   addUArcs :: [(Int, Int)] -> a -> a
-  addUArcs arcs g
-    = addArcs (arcs ++ fmap swap arcs) g
 
   -- Adds weighted arcs specified by the list of pairs in the second argument.
   -- Example: ((3, 4), 10) means an arc from node 3 to node 4 with weight 10.
@@ -90,8 +88,6 @@ class Graph a where
   -- Similar to above, but undirected (removes both n to n' and n' to n).
   -- Pre: the node indices in the arc list are in the graph.
   removeUArcs :: [(Int, Int)] -> a -> a
-  removeUArcs arcs g
-    = removeArcs (arcs ++ fmap swap arcs) g
 
   removeNodes :: [Int] -> a -> a
 
@@ -111,11 +107,6 @@ class Graph a where
   disconnect :: Int -> a -> a
   disconnect n g
     = addNodes [n] $ removeNodes [n] g
-
-  -- Returns true if the node is disconnected in an undirected graph.
-  -- Pre: the node is in the graph and the graph is indeed undirected.
-  isDisconnectedAt :: Int -> a -> Bool
-  isDisconnectedAt = ((== 0) .) . degree
 
   -- Returns the list of nodes.
   nodes :: a -> [Int]
@@ -166,6 +157,9 @@ instance Eq GraphList where
 instance Graph GraphList where
   emptyGraph = LGraph 0 $ fromAscList []
 
+  addUArcs arcs g
+    = addArcs (arcs ++ fmap swap [(n, n') | (n, n') <- arcs,n /= n']) g
+
   addWArcs arcs (LGraph sz list)
     = LGraph sz $ addWArcs' list arcs
     where
@@ -194,6 +188,9 @@ instance Graph GraphList where
       removeArcs' l ((n, n') : as)
         | member n l = removeArcs' (adjust (delete n') n l) as
         | otherwise  = removeArcs' l as
+
+  removeUArcs arcs g
+    = removeArcs (arcs ++ fmap swap [(n, n') | (n, n') <- arcs,n /= n']) g
 
   removeNodes [] g
     = g
@@ -225,17 +222,20 @@ instance Graph GraphList where
   simplify (LGraph sz list)
     = LGraph sz (mapWithKey ((map (const 1) .) . delete) list)
 
-  isDisconnectedAt = (null .) . flip ((!) . nodeList)
-
   nodes = keys . nodeList
 
   numNodes = nodeNumL
 
   inDegree = (sum .) . (. nodeList) . fmap . (maybe 0 id .) . flip (!?)
 
-  outDegree = (maybe 0 id .) . flip ((!?) . (sum <$>) . nodeList)
+  outDegree = ((maybe 0 id . (sum <$>)) .) . flip ((!?) . nodeList)
 
-  degree = outDegree
+  degree n g
+    = maybe 0 id (sum <$> mapWithKey (dCount n) <$> (nodeList g !? n))
+    where
+      dCount key n w
+        | key == n  = 2 * w
+        | otherwise = w
 
   neighbours = (keys .) . flip ((!) . nodeList)
 
