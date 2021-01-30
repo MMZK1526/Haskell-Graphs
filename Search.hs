@@ -88,9 +88,9 @@ depthFirstTree n graph
     dfn x      = depthFirstS x graph True (\n -> do
       raw <- get
       let (st, g) = fromJust raw
-      if null st
-        then put $ Just (n : st, g)
-        else put $ Just (n : st, addUArcs [(head st, n)] g)
+      put $ if null st
+        then Just (n : st, g)
+        else Just (n : st, addUArcs [(head st, n)] g)
       ) $ \_ -> do
       raw <- get
       let (st, g) = fromJust raw
@@ -131,7 +131,6 @@ breadthFirstS x graph fEnter fExit = do
       case queue of
         Empty      -> return ()
         (q :<| qs) -> do
-          let (q :<| qs) = queue
           runWhenJust mb $ put ((nIn, qs), execState (fExit q) mb)
           forM_ (neighbours q graph) $ \x -> do
             ((nIn, qs), mb) <- get

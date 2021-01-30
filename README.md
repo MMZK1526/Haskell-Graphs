@@ -7,6 +7,9 @@ For a quick guide on the algorithms, check out Example.hs.
 # Graph.hs
 Implements graphs using Adjacency List;  
 Provides a type class for graphs.  
+  
+Dependencies: `Data.IntMap`, `Data.Sequence`, `Data.Set`.  
+These should be available in default GHC. If not, install the hackage `containers`.  
 
 # Search
 Implements Depth-First Search & Breadth-First Search;  
@@ -69,7 +72,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * Pre: The given node is in the graph.  
 
 * `isConnected :: Graph a => a -> Bool`  
-  * Test if the graph is connected  
+  * Test if the graph is connected;  
   * The polymorphic type 'a' represents the graph.  
   * **Argument 1:**
     * The graph.   

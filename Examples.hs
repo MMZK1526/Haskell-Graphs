@@ -74,11 +74,14 @@ wGraphExp = initWGraph [1..3] [((1, 2), 0), ((1, 3), 1),((2, 3), 2)]
     -- 1: [2: 0, 3: 1]
     -- 2: [3: 2]
     -- 3: []
--- Note that there is an arc between 1 and 2 with weight of zero, that does not
--- mean there is no arc between 1 and 2!
+-- Note that there is an arc from 1 to 2 with weight of zero, but it DOES
+-- NOT mean there is no arc between 1 and 2!
   -- neighbours 1 wGraphExp
     -- [2,3]
 -- 2 is a neighbour of 1 despite that the weight of the arc (1, 2) is zero.
+  -- neighbours 2 wGraphExp
+    -- [3]
+-- 1 is NOT a neighbour of 2 because the arr (1, 2) is directed.
 
 
 -- Some other graphs for testing purpose:
@@ -174,7 +177,6 @@ k33BFSNodes = breadthFirstNodes 1 k33
 -- path from i to j.
 -- It is commonly used to describe a list of tasks, where some of the tasks must 
 -- be completed before others.
-
 
 topologicallySortedProcedures :: [Int]
 topologicallySortedProcedures = fromJust $ topologicalSort procedures
