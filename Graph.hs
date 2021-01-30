@@ -171,7 +171,7 @@ instance Graph GraphList where
           updateEntry m
             | notMember n' l = m
             | notMember n' m = insert n' w m
-            | otherwise      = adjust (+w) n' m
+            | otherwise      = adjust (+ w) n' m
 
   addNodes [] g
     = g
@@ -242,8 +242,8 @@ instance Graph GraphList where
 
 -- Utilities
 
--- runWhenJust returns () when the input is Nothing, and applies the
--- following function when the input is a Just.
+-- runWhenJust returns () when the input is Nothing, and applies the state
+-- when the input is a Just.
 runWhenJust :: Maybe a -> State b () -> State b ()
 runWhenJust m f
   | isNothing m = return ()

@@ -5,14 +5,14 @@ Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms.
 For a quick guide on the algorithms, check out Example.hs.  
 
 # Graph.hs
-Implements graph using Adjacency List;  
+Implements graphs using Adjacency List;  
 Provides a type class for graphs.  
 
 # Search
 Implements Depth-First Search & Breadth-First Search;  
 Generates spanning trees and computes depth of each node given the root;  
 Checks connectivity of graphs;  
-Computes distance between two nodes;
+Computes distance between two nodes;  
 Conducts topological sort on directed acylic graphs (DAG).  
 
 * `depthFirstNodes :: :: Graph a => Int -> a -> [(Int, Int)]`  
@@ -25,7 +25,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Result:**  
     * A list of tuples, where for each entry the first element is the node, and the second element is the depth of the corresponding node.  
   * Pre: The given node is in the graph.  
-  
+
 * `depthFirstTree :: Graph a => Int -> a -> a`  
   * Traverses the graph using Depth-First Search from a given node and returns the corresponding spanning tree.  
   * The polymorphic type 'a' represents the graph.  
@@ -119,10 +119,11 @@ Conducts topological sort on directed acylic graphs (DAG).
       * A State that updates the information;  
       * If it is Nothing, then the search will terminate.  
   * **Result:**  
-    * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search.  
+    * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
+    * To make a valid search, the initial state should be in the form of `Just ((empty, empty), info)`, where empty is the empty Set.  
   * Pre: The given node is in the graph.  
 
-* `breadthFirstS :: Graph a => Int -> a -> (Int -> State (Maybe b) ()) -> (Int -> State (Maybe b) ()) -> State ((Set Int, Set Int), (Maybe b)) ()`  
+* `breadthFirstS :: Graph a => Int -> a -> (Int -> State (Maybe b) ()) -> (Int -> State (Maybe b) ()) -> State ((Set Int, Seq Int), (Maybe b)) ()`  
   * A State that simulates Breadth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search.  
   * The polymorphic type 'a' represents the graph.  
@@ -146,5 +147,6 @@ Conducts topological sort on directed acylic graphs (DAG).
       * A State that updates the information;  
       * If it is Nothing, then the search will terminate.  
   * **Result:**  
-    * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search.  
+    * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
+    * To make a valid search, the initial state should be in the form of `Just ((Data.Set.empty, Data.Sequence.empty), info)`.  
   * Pre: The given node is in the graph.  

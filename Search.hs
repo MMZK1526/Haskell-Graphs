@@ -8,7 +8,7 @@ module Search where
 
 import           Control.Monad
 import           Control.Monad.Trans.State
-import           Data.Foldable as F
+import           Data.Foldable as F (toList)
 import           Data.Maybe (fromJust, isNothing)
 
 -- May require installation
@@ -43,19 +43,17 @@ depthFirstS x graph allowCycle fEnter fExit
     ((nIn, nOut), mb) <- get
     -- runWhenJust returns () when the input is Nothing, and applies the
     -- following function when the input is a Just.
-    runWhenJust mb (if S.member x nIn
+    runWhenJust mb $ if S.member x nIn
       then return ()
       else do
         put ((S.insert x nIn, nOut), execState (fEnter x) mb)
-        forM_ (neighbours x graph) (\y -> if S.member y nIn
+        forM_ (neighbours x graph) $ \y -> if S.member y nIn
           then if not $ S.member y nOut || allowCycle
             then put ((S.insert x nIn, nOut), Nothing)
             else return ()
           else dfs y
-          )
         ((nIn, nOut), mb) <- get
-        runWhenJust mb (put ((nIn, S.insert x nOut), execState (fExit x) mb))
-      )
+        runWhenJust mb $ put ((nIn, S.insert x nOut), execState (fExit x) mb)
 
 -- Traverses the graph using Depth-First Search from a given node
 -- and returns the list of passed nodes and their depths.
@@ -71,11 +69,10 @@ depthFirstNodes n graph
       raw <- get
       let (d, ns) = fromJust raw
       put $ Just (d + 1, IM.insert n d ns)
-      ) (const $ do
+      ) $ \_ -> do
       raw <- get
       let (d, ns) = fromJust raw
       put $ Just (d - 1, ns)
-      )
 
 -- Traverses the graph using Depth-First Search from a given node
 -- and returns the corresponding spanning tree.
@@ -94,24 +91,22 @@ depthFirstTree n graph
       if null st
         then put $ Just (n : st, g)
         else put $ Just (n : st, addUArcs [(head st, n)] g)
-      ) (const $ do
+      ) $ \_ -> do
       raw <- get
       let (st, g) = fromJust raw
       put $ Just (tail st, g)
-      )
 
 -- Topological sorting of a directed acyclic graph (DAG).
 -- If the graph contains a cycle, will return Nothing.
 topologicalSort :: Graph a => a -> Maybe [Int]
 topologicalSort graph
-  = F.toList <$> (snd (execState (forM_ (nodes graph) tSortS) initial))
+  = snd (execState (forM_ (nodes graph) tSortS) initial)
   where
-    initial  = ((fromDescList [], fromDescList []), Just $ fromList [])
+    initial  = ((fromDescList [], fromDescList []), Just [])
     -- Runs the Depth-First Search on each of the nodes.
-    tSortS x = depthFirstS x graph False (const $ return ()) (\n -> do
+    tSortS x = depthFirstS x graph False (const $ return ()) $ \n -> do
       raw <- get
-      put $ Just (insertAt 0 n $ fromJust raw)
-      )
+      put $ Just (n : fromJust raw)
 
 -- A State that simulates Breadth-First Search.
 -- This function is convoluted and is not necessary unless you need to do custom
@@ -133,24 +128,16 @@ breadthFirstS x graph fEnter fExit = do
   where
     bfs = do
       ((nIn, queue), mb) <- get
-      if queue == empty
-        then return ()
-        else do
+      case queue of
+        Empty      -> return ()
+        (q :<| qs) -> do
           let (q :<| qs) = queue
-          runWhenJust mb (do
-            put ((nIn, queue), execState (fExit q) mb)
-            )
-          ((nIn, queue), mb) <- get
-          runWhenJust mb (do
-            put ((nIn, qs), mb)
-            forM_ (neighbours q graph) (\x -> do
-              ((nIn, qs), mb) <- get
-              runWhenJust mb (if S.member x nIn
-                then return ()
-                else put ((S.insert x nIn, qs |> x), execState (fEnter x) mb)
-                )
-              )
-            )
+          runWhenJust mb $ put ((nIn, qs), execState (fExit q) mb)
+          forM_ (neighbours q graph) $ \x -> do
+            ((nIn, qs), mb) <- get
+            runWhenJust mb $ if S.member x nIn
+              then return ()
+              else put ((S.insert x nIn, qs |> x), execState (fEnter x) mb)
           bfs
 
 -- Traverses the graph using Breadth-First Search from a given node
@@ -165,11 +152,10 @@ breadthFirstNodes n graph
       raw <- get
       let (d, ns) = fromJust raw
       put $ Just (d, IM.insert n d ns)
-      ) (\n -> do
+      ) $ \n -> do
       raw <- get
       let (_, ns) = fromJust raw
       put $ Just (ns ! n + 1, ns)
-      )
 
 -- Traverses the graph using Breadth-First Search from a given node
 -- and returns the corresponding spanning tree.
@@ -188,11 +174,10 @@ breadthFirstTree n graph
       if isNothing parent
         then return ()
         else put $ Just (parent, addUArcs [(fromJust parent, n)] g)
-      ) (\n -> do
+      ) $ \n -> do
       raw <- get
       let (_, g) = fromJust raw
       put $ Just (Just n, g)
-      )
 
 -- Returns True if the graph is connected.
 isConnected :: Graph a => a -> Bool
