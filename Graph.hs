@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs #-}
+
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs
 
 module Graph where
@@ -105,8 +107,6 @@ class Graph a where
 
   -- Removes all arcs connecting to a node, but retain that node.
   disconnect :: Int -> a -> a
-  disconnect n g
-    = addNodes [n] $ removeNodes [n] g
 
   -- Returns the list of nodes.
   nodes :: a -> [Int]
@@ -152,14 +152,16 @@ instance Show GraphList where
 
 instance Eq GraphList where
   LGraph s l == LGraph s' l'
-    = s == s' && (and $ fmap (\s -> (l !? s) == (l' !? s)) (keys l))
+    = s == s' && (and $ (liftM2 (==) (l !?) (l' !?)) <$> (keys l))
 
 instance Graph GraphList where
+  emptyGraph :: GraphList
   emptyGraph = LGraph 0 $ fromAscList []
 
+  addUArcs :: [(Int, Int)] -> GraphList -> GraphList
   addUArcs arcs g
-    = addArcs (arcs ++ fmap swap [(n, n') | (n, n') <- arcs,n /= n']) g
-
+    = addArcs (arcs ++ fmap swap [(n, n') | (n, n') <- arcs, n /= n']) g
+  addWArcs :: [((Int, Int), Int)] -> GraphList -> GraphList
   addWArcs arcs (LGraph sz list)
     = LGraph sz $ addWArcs' list arcs
     where
@@ -173,13 +175,15 @@ instance Graph GraphList where
             | notMember n' m = insert n' w m
             | otherwise      = adjust (+ w) n' m
 
+  addNodes :: [Int] -> GraphList -> GraphList
   addNodes [] g
     = g
   addNodes (n : ns) g@(LGraph sz list)
     | member n list = addNodes ns g
     | otherwise     
       = addNodes ns $ LGraph (sz + 1) (insert n (fromAscList []) list)
-
+      
+  removeArcs :: [(Int, Int)] -> GraphList -> GraphList
   removeArcs arcs (LGraph sz list)
     = LGraph sz $ removeArcs' list arcs
     where
@@ -189,9 +193,11 @@ instance Graph GraphList where
         | member n l = removeArcs' (adjust (delete n') n l) as
         | otherwise  = removeArcs' l as
 
+  removeUArcs :: [(Int, Int)] -> GraphList -> GraphList
   removeUArcs arcs g
-    = removeArcs (arcs ++ fmap swap [(n, n') | (n, n') <- arcs,n /= n']) g
+    = removeArcs (arcs ++ fmap swap [(n, n') | (n, n') <- arcs, n /= n']) g
 
+  removeNodes :: [Int] -> GraphList -> GraphList
   removeNodes [] g
     = g
   removeNodes (n : ns) g@(LGraph sz list)
@@ -199,6 +205,15 @@ instance Graph GraphList where
       = removeNodes ns $ LGraph (sz - 1) (map (delete n) (delete n list))
     | otherwise = removeNodes ns g
 
+  weight :: (Int, Int) -> GraphList -> Maybe Int
+  weight (n, n') (LGraph _ list)
+    | notMember n list = Nothing
+    | notMember n' row = Nothing
+    | otherwise        = Just $ row ! n'
+    where
+      row = list ! n
+
+  setWeights :: [((Int, Int), Int)] -> GraphList -> GraphList
   setWeights arcs (LGraph sz list)
     = LGraph sz $ set' list arcs
     where
@@ -212,24 +227,27 @@ instance Graph GraphList where
             | notMember n' m = insert n' w m
             | otherwise      = adjust (const w) n' m 
 
-  weight (n, n') (LGraph _ list)
-    | notMember n list = Nothing
-    | notMember n' row = Nothing
-    | otherwise        = Just $ row ! n'
-    where
-      row = list ! n
-
+  simplify :: GraphList -> GraphList
   simplify (LGraph sz list)
-    = LGraph sz (mapWithKey ((map (const 1) .) . delete) list)
+    = LGraph sz $ mapWithKey ((map (const 1) .) . delete) list
 
+  disconnect :: Int -> GraphList -> GraphList
+  disconnect n (LGraph sz list)
+    = LGraph sz $ (delete n) <$> delete n list
+
+  nodes :: GraphList -> [Int]
   nodes = keys . nodeList
 
+  numNodes :: GraphList -> Int
   numNodes = nodeNumL
 
+  inDegree :: Int -> GraphList -> Int
   inDegree = (sum .) . (. nodeList) . fmap . (maybe 0 id .) . flip (!?)
 
+  outDegree :: Int -> GraphList -> Int
   outDegree = ((maybe 0 id . (sum <$>)) .) . flip ((!?) . nodeList)
 
+  degree :: Int -> GraphList -> Int
   degree n g
     = maybe 0 id (sum <$> mapWithKey (dCount n) <$> (nodeList g !? n))
     where
@@ -237,6 +255,7 @@ instance Graph GraphList where
         | key == n  = 2 * w
         | otherwise = w
 
+  neighbours :: Int -> GraphList -> [Int]
   neighbours = (keys .) . flip ((!) . nodeList)
 
 
