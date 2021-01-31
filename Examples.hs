@@ -196,7 +196,7 @@ topologicallySortedProcedures = fromJust $ topologicalSort procedures
     -- [6,3,4,1,2,7,5]
 -- If we sort an undirected graph, it will return Nothing because it cannot
 -- establish the sense of direction between nodes.
-  -- topologicalSort k4m
+  -- topologicalSort k4l
     -- Nothing
 
 

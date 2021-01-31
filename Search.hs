@@ -46,9 +46,7 @@ depthFirstS x graph allowCycle fEnter fExit
           let (b', result) = runState (fEnter x) t
           put ((S.insert x nIn, nOut), result)
           b' <- forMBreak_ (neighbours x graph) $ \y -> if S.member y nIn
-            then if not $ S.member y nOut || allowCycle
-              then breakLoop
-              else continueLoop
+            then breakUpon (not $ S.member y nOut || allowCycle)
             else do 
               b' <- dfs (flag b') y 
               return $ flag b'
@@ -133,7 +131,6 @@ breadthFirstS x graph fEnter fExit = do
       put ((S.insert x nIn, x <| queue), res)
       bfs $ flag b'
   where
-    -- bfs :: Terminate () -> State ((Set Int, Seq Int), b) (Terminate ())
     bfs b = do
       ((nIn, queue), t) <- get
       runUnlessBreak b $ case queue of
@@ -141,14 +138,14 @@ breadthFirstS x graph fEnter fExit = do
         (q :<| qs) -> do
           let (b', res) = runState (fExit q) t
           put ((nIn, qs), res)
-          b' <- forMBreak_ (neighbours q graph) $ \x -> do
-            ((nIn, qs), t) <- get
-            runUnlessBreak b' $ if S.member x nIn
-              then continueLoop
-              else do 
-                let (b', res) = runState (fEnter x) t
-                put ((S.insert x nIn, qs |> x), res)
-                return $ flag b'
+          b' <- forMBreak_ (neighbours q graph) 
+            $ \x -> runUnlessBreak b' $ if S.member x nIn
+            then continueLoop
+            else do 
+              ((nIn, qs), t) <- get
+              let (b', res) = runState (fEnter x) t
+              put ((S.insert x nIn, qs |> x), res)
+              return $ flag b'
           bfs $ flag b'
 
 -- Traverses the graph using Breadth-First Search from a given node
