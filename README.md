@@ -1,6 +1,6 @@
 # Haskell-Graphs
 Implements graph-related algorithms in Haskell.  
-Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms. 
+Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms.
 (Just starting, I'll add algorithms as the course goes on)  
 For a quick guide on the algorithms, check out Example.hs.  
 For full documentation of the functions, see below.  
@@ -44,7 +44,7 @@ These should be available in default GHC. If not, install the hackage `container
     * Pre: the nodes in the arc list are in node list.  
 
   * `initWGraph :: [Int] -> [((Int, Int), Int)] -> a`  
-    * Initialises a integer-weighted (will be refered as simply 'weighted' for convenience) directed graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
+    * Initialises an integer-weighted (will be refered as simply 'weighted' for convenience) directed graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
     * **Argument 1 `Int`:**  
       * The list of nodes.  
     * **Argument 2 `[((Int, Int), Int)]`:**  
@@ -175,7 +175,7 @@ These should be available in default GHC. If not, install the hackage `container
     * The number of nodes in the graph.  
 
 * `inDegree :: Int -> a -> Int`  
-  * **Argument 1`Int`:**  
+  * **Argument 1 `Int`:**  
     * The node.  
   * **Argument 2 `a`:**  
     * The graph.  
@@ -184,7 +184,7 @@ These should be available in default GHC. If not, install the hackage `container
   * Pre: the node is in the graph.  
 
 * `outDegree :: Int -> a -> Int`  
-  * **Argument 1`Int`:**  
+  * **Argument 1 `Int`:**  
     * The node.  
   * **Argument 2 `a`:**  
     * The graph.  
@@ -195,7 +195,7 @@ These should be available in default GHC. If not, install the hackage `container
 * `degree :: Int -> a -> Int`  
   * Returns the degree of a node in an unweighted graph;
   * Loops are counted twice.  
-  * **Argument 1`Int`:**  
+  * **Argument 1 `Int`:**  
     * The node.  
   * **Argument 2 `a`:**  
     * The graph.  
@@ -206,7 +206,7 @@ These should be available in default GHC. If not, install the hackage `container
   * `neighbours :: Int -> a -> [Int]`
   * Returns the list of nodes that connects from the given node.  
   * Loops are counted twice.  
-  * **Argument 1`Int`:**  
+  * **Argument 1 `Int`:**  
     * The node.  
   * **Argument 2 `a`:**  
     * The graph.  
@@ -214,7 +214,7 @@ These should be available in default GHC. If not, install the hackage `container
     * The list of adjacent nodes from the given node.  
   * Pre: the node is in the graph.  
 
-# Search
+# Search.hs
 Implements Depth-First Search & Breadth-First Search;  
 Generates spanning trees and computes depth of each node given the root;  
 Checks connectivity of graphs;  
@@ -339,7 +339,7 @@ Conducts topological sort on directed acylic graphs (DAG).
       * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Result:**  
     * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
-    * To make a valid search, the initial state should be in the form of `Just ((empty, empty), info)`, where empty is the empty Set.  
+    * To make a valid search, the initial state should be in the form of `((empty, empty), info)`, where empty is the empty Set.  
   * Pre: The given node is in the graph.  
 
 * `breadthFirstS :: Graph a => Int -> a -> (Int -> State b (Terminate c)) -> (Int -> State b (Terminate d)) -> State ((Set Int, Set Int), b) (Terminate ())`  
@@ -352,11 +352,11 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Argument 2 `Graph a => a`:**  
     * The graph.  
   * **Argument 3 `Int -> State (Terminate b) ()`:**  
-    * This function will be called whenever the search passes a new node for the FIRST time (when the node is added into the frontier).  
+    * This function will be called whenever the search passes a new node for the FIRST time (when the node is added to the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information and returns a `Terminate` (TODO: Add documentation for Terminate);  
+      * A State that updates the information and returns a `Terminate` (**TODO: Add documentation for Terminate**);  
       * If it terminates (ends in `breakLoop`), then the search will terminate;  
       * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Argument 4 `Int -> State (Terminate b) ()`:**  
@@ -369,5 +369,5 @@ Conducts topological sort on directed acylic graphs (DAG).
       * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Result:**  
     * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
-    * To make a valid search, the initial state should be in the form of `Just ((Data.Set.empty, Data.Sequence.empty), info)`.  
+    * To make a valid search, the initial state should be in the form of `((Data.Set.empty, Data.Sequence.empty), info)`.  
   * Pre: The given node is in the graph.  
