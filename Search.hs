@@ -1,4 +1,4 @@
--- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs
+-- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
 module Search where
 
@@ -10,6 +10,7 @@ import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Foldable as F (toList)
 import           Data.Maybe (fromJust, isNothing)
+import           Prelude hiding (filter)
 
 -- May require installation
 import           Data.IntMap.Lazy as IM
@@ -18,12 +19,13 @@ import           Data.IntMap.Lazy as IM
   )
 import           Data.Sequence hiding (length, null, (!?))
 import           Data.Set as S (Set(..), fromDescList, insert, member, size)
-import           Prelude hiding (filter)
 
 import           Graph
 
 
--- Functions
+--------------------------------------------------------------------------------
+-- DFS & BFS
+--------------------------------------------------------------------------------
 
 -- A State that simulates Depth-First Search.
 -- This function is convoluted and is not necessary unless you need to do custom
@@ -60,12 +62,12 @@ depthFirstS x graph allowCycle fEnter fExit
 -- Pre: The given node is in the graph.
 depthFirstNodes :: Graph a => Int -> a -> IntMap Int
 depthFirstNodes n graph
-  = snd $ fromJust (snd (execState (dfn n) initial))
+  = snd $ fromJust (snd (execState (dfs n) initial))
   where
     -- Contains sets of visited nodes (first pass), exited nodes (last pass),
     -- and a list of nodes with their depth. Starts with all empty.
     initial = ((fromDescList [], fromDescList []), Just (0, fromAscList []))
-    dfn x   = depthFirstS x graph True (\n -> do
+    dfs x   = depthFirstS x graph True (\n -> do
       raw <- get
       let (d, ns) = fromJust raw
       put $ Just (d + 1, IM.insert n d ns)
@@ -79,13 +81,13 @@ depthFirstNodes n graph
 -- Pre: The given node is in the graph.
 depthFirstTree :: Graph a => Int -> a -> a
 depthFirstTree n graph
-  = snd $ fromJust (snd (execState (dfn n) initial))
+  = snd $ fromJust (snd (execState (dfs n) initial))
   where
     -- Contains sets of visited nodes (first pass), exited nodes (last pass),
     -- and a graph that builds towards the spanning tree.
     initial    = ((fromDescList [], fromDescList []), Just ([], startGraph))
     startGraph = initGraph (nodes graph) []
-    dfn x      = depthFirstS x graph True (\n -> do
+    dfs x      = depthFirstS x graph True (\n -> do
       raw <- get
       let (st, g) = fromJust raw
       put $ if null st
@@ -123,7 +125,7 @@ breadthFirstS x graph fEnter fExit = do
   if S.member x nIn
     then return ()
     else do
-      put ((S.insert x nIn, insertAt 0 x queue), execState (fEnter x) mb)
+      put ((S.insert x nIn, x <| queue), execState (fEnter x) mb)
       bfs
   where
     bfs = do
@@ -169,16 +171,15 @@ breadthFirstTree n graph
     startGraph = initGraph (nodes graph) []
     bfs x      = breadthFirstS x graph (\n -> do
       raw <- get
-      let (parent, g) = fromJust raw
-      if isNothing parent
-        then return ()
-        else put $ Just (parent, addUArcs [(fromJust parent, n)] g)
+      let (p, g) = fromJust raw
+      runWhenJust p $ put (Just (p, addUArcs [(fromJust p, n)] g))
       ) $ \n -> do
       raw <- get
       let (_, g) = fromJust raw
       put $ Just (Just n, g)
 
--- Returns True if the graph is connected.
+-- Returns True if the undirected graph is connected.  
+-- Pre: The graph is undirected.  
 isConnected :: Graph a => a -> Bool
 isConnected graph
   = (sz == 0) || (snd (execState (bfs (head $ nodes graph)) initial) == Just sz)

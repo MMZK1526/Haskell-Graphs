@@ -275,13 +275,14 @@ Conducts topological sort on directed acylic graphs (DAG).
   * Pre: The given node is in the graph.  
 
 * `isConnected :: Graph a => a -> Bool`  
-  * Test if the graph is connected;  
+  * Test if the undirected graph is connected;  
   * The polymorphic type 'a' represents the graph.  
   * **Argument 1:**
-    * The graph.   
+    * The undirected graph.   
   * **Result:**  
     * True if the graph is connected (strongly connected if it is directed);
     * False if the graph is disconnected.  
+  * Pre: The graph is undirected.  
 
 * `distance :: Graph a => Int -> Int -> a -> Maybe Int`  
   * Returns the (unweighted) distance between two nodes;   
