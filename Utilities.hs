@@ -71,6 +71,13 @@ flag (Left _)
 flag (Right _)
   = Right ()
 
+-- Break if the predicate is true.
+breakUpon :: Monad m => Bool -> m (Terminate ())
+breakUpon True
+  = breakLoop
+breakUpon _
+  = continueLoop
+
 
 --------------------------------------------------------------------------------
 -- Miscellaneous
