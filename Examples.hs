@@ -62,12 +62,12 @@ procedures = initGraph [1..7] [(1, 2), (6, 2), (2, 7), (2, 5), (3, 4), (4, 5)]
     -- Just 1
 
 
--- Example of weighted graph
-wGraphExp :: GraphList
-wGraphExp = initWGraph [1..3] [((1, 2), 0), ((1, 3), 1),((2, 3), 2)]
+-- Example of weighted graph:
+wGraphEx :: GraphList
+wGraphEx = initWGraph [1..3] [((1, 2), 0), ((1, 3), 1),((2, 3), 2)]
 
 -- In ghci:
-  -- wGraphExp
+  -- wGraphEx
     -- Nodes:
     -- [1,2,3]
     -- Adjacency List:
@@ -76,10 +76,10 @@ wGraphExp = initWGraph [1..3] [((1, 2), 0), ((1, 3), 1),((2, 3), 2)]
     -- 3: []
 -- Note that there is an arc from 1 to 2 with weight of zero, but it DOES
 -- NOT mean there is no arc between 1 and 2!
-  -- neighbours 1 wGraphExp
+  -- neighbours 1 wGraphEx
     -- [2,3]
 -- 2 is a neighbour of 1 despite that the weight of the arc (1, 2) is zero.
-  -- neighbours 2 wGraphExp
+  -- neighbours 2 wGraphEx
     -- [3]
 -- 1 is NOT a neighbour of 2 because the arr (1, 2) is directed.
 
@@ -90,7 +90,7 @@ wGraphExp = initWGraph [1..3] [((1, 2), 0), ((1, 3), 1),((2, 3), 2)]
 k5 :: GraphList
 k5 = initUGraph [1..5] [(i, j) | i <- [1..5], j <- [1..5], i < j]
 
--- Disconnected graph with two K3 components
+-- Disconnected graph with two K3 components:
 k3t2 :: GraphList
 k3t2 = initUGraph [1..6] [(1, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 6)]
 
@@ -158,6 +158,16 @@ k33BFSNodes = breadthFirstNodes 1 k33
     -- True
   -- isConnected k3t2
     -- False
+-- isConnected may not work properly on directed graph:
+  -- isConnected procedures
+    -- True
+-- To check connecivity for directed graphs, use isStronglyConnected:
+  -- isStronglyConnected procedures
+    -- False
+  -- isStronglyConnected wGraphEx
+    -- False
+  -- isStronglyConnected k33
+    -- True
 
 
 -- Distance check

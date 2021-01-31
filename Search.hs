@@ -196,7 +196,7 @@ isConnected graph
 isStronglyConnected :: Graph a => a -> Bool
 isStronglyConnected graph
   | numNodes graph == 0 = True
-  | otherwise           = isConnected graph && not (isBreaking traceBack)
+  | otherwise           = not (isBreaking traceBack) && isConnected graph
   where
     inner     = (S.empty, fromList [])
     -- h is the root while t contains all the non-root nodes.

@@ -127,7 +127,7 @@ These should be available in default GHC. If not, install the hackage `container
      * A new graph that removes the given nodes from the original graph.  
 
 * `weight :: (Int, Int) -> a -> Maybe Int`
-  * Returns the weight of the given arc, wrapped in Just;  
+  * Returns the weight of the given arc, wrapped in a `Just`;  
   * If the arc does not exist, then Nothing;  
     * **Argument 1 `[(Int, Int)]`:**  
       * The list of arcs specified by the pairs of nodes.  
@@ -250,7 +250,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
-    * A topological ordering of the nodes of the graph, if exists, wrapped in a Just; if no such ordering exists, then Nothing.  
+    * A topological ordering of the nodes of the graph, if exists, wrapped in a `Just`; if no such ordering exists, then Nothing.  
 
 * `breadthFirstNodes :: Graph a => Int -> a -> [(Int, Int)]`  
   * Traverses the graph using Breadth-First Search from a given node and returns the list of passed nodes and their depths.  
@@ -280,9 +280,17 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Argument 1:**
     * The undirected graph.   
   * **Result:**  
-    * True if the graph is connected (strongly connected if it is directed);
+    * True if the graph is connected;
     * False if the graph is disconnected.  
-  * Pre: The graph is undirected.  
+  * Pre: The graph is undirected. 
+
+* `isStronglyConnected :: Graph a => a -> Bool`  
+  * Test if the (directed) graph is strongly connected;  
+  * The polymorphic type 'a' represents the graph.  
+  * **Argument 1:**
+    * The undirected graph.  
+  * **Result:**  
+    * True if the graph is strongly connected, otherwise False.  
 
 * `distance :: Graph a => Int -> Int -> a -> Maybe Int`  
   * Returns the (unweighted) distance between two nodes;   
@@ -298,7 +306,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * If no such path exists, then Nothing.  
   * Pre: The given nodes are in the graph.  
 
-* `depthFirstS :: Graph a => Int -> a -> Bool -> (Int -> State (Maybe b) ()) -> (Int -> State (Maybe b) ()) -> State ((Set Int, Set Int), (Maybe b)) ()`  
+* `depthFirstS :: Graph a => Int -> a -> Bool -> (Int -> State (Terminate b) ()) -> (Int -> State (Terminate b) ()) -> State ((Set Int, Set Int), (Terminate b)) ()`  
   * A State that simulates Depth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search.  
   * The polymorphic type 'a' represents the graph.  
@@ -311,26 +319,26 @@ Conducts topological sort on directed acylic graphs (DAG).
     * If False, then the search will terminate when a cycle is encountered;  
     * If True, then the search will continue when a cycle is encountered;  
     * Note that here an undirected arc is considered as a cycle as well.  
-  * **Argument 4 `Int -> State (Maybe b) ()`:**  
+  * **Argument 4 `Int -> State (Terminate b) ()`:**  
     * This function will be called whenever the search passes a new node for the FIRST time.  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information;  
-      * If it is Nothing, then the search will terminate.  
+      * A State that updates the information, wrapped in a `Terminate` (TODO: Add documentation for Terminate);  
+      * If it terminates (`isBreaking info == True`), then the search will terminate.  
   * **Argument 5 `(Int -> State (Maybe b) ())`:**  
     * This function will be called whenever the search passes a new node for the LAST time.  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information;  
-      * If it is Nothing, then the search will terminate.  
+      * A State that updates the information, wrapped in a `Terminate`;  
+      * If it terminates (`isBreaking info == True`), then the search will terminate.  
   * **Result:**  
     * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
-    * To make a valid search, the initial state should be in the form of `Just ((empty, empty), info)`, where empty is the empty Set.  
+    * To make a valid search, the initial state should be in the form of `Just ((empty, empty), Terminate False info)`, where empty is the empty Set.  
   * Pre: The given node is in the graph.  
 
-* `breadthFirstS :: Graph a => Int -> a -> (Int -> State (Maybe b) ()) -> (Int -> State (Maybe b) ()) -> State ((Set Int, Seq Int), (Maybe b)) ()`  
+* `breadthFirstS :: Graph a => Int -> a -> (Int -> State (Terminate b) ()) -> (Int -> State (Terminate b) ()) -> State ((Set Int, Seq Int), (Terminate b)) ()`  
   * A State that simulates Breadth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search.  
   * The polymorphic type 'a' represents the graph.  
@@ -339,21 +347,21 @@ Conducts topological sort on directed acylic graphs (DAG).
     * The root node for the search.  
   * **Argument 2 `Graph a => a`:**  
     * The graph.  
-  * **Argument 3 `Int -> State (Maybe b) ()`:**  
+  * **Argument 3 `Int -> State (Terminate b) ()`:**  
     * This function will be called whenever the search passes a new node for the FIRST time (when the node is added into the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information;  
-      * If it is Nothing, then the search will terminate.  
-  * **Argument 4 `Int -> State (Maybe b) ()`:**  
+      * A State that updates the information, wrapped in a `Terminate`;  
+      * If it terminates (`isBreaking info == True`), then the search will terminate.  
+  * **Argument 4 `Int -> State (Terminate b) ()`:**  
     * This function will be called whenever the search passes a new node for the LAST time (when the node is popped from the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information;  
-      * If it is Nothing, then the search will terminate.  
+      * A State that updates the information, wrapped in a `Terminate`;  
+      * If it terminates (`isBreaking info == True`), then the search will terminate.  
   * **Result:**  
     * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
-    * To make a valid search, the initial state should be in the form of `Just ((Data.Set.empty, Data.Sequence.empty), info)`.  
+    * To make a valid search, the initial state should be in the form of `Just ((Data.Set.empty, Data.Sequence.empty), Terminate False info)`.  
   * Pre: The given node is in the graph.  
