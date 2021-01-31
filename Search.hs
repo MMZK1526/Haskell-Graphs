@@ -191,8 +191,8 @@ isConnected graph
       ) (const $ return ())
 
 -- Returns True if the directed graph is strongly connected.
--- Algorithm: First check if the all nodes are reachable from a root,
--- then check if every non-root node can reach the node.
+-- Algorithm: First check if every non-root node can reach the root (randomly 
+-- picked), then check if the all nodes are reachable from the root.
 isStronglyConnected :: Graph a => a -> Bool
 isStronglyConnected graph
   | numNodes graph == 0 = True
@@ -225,8 +225,8 @@ isStronglyConnected graph
       if bool
         then do
           put (inner, Terminate False info)
-          return (Terminate False ())
-        else return (Terminate True ())
+          continueLoop
+        else breakLoop
 
 -- Returns the (unweighted) distance between two nodes;  
 -- If unreachable returns Nothing.  

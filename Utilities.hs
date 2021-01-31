@@ -2,6 +2,7 @@ module Utilities where
 
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
+import           Control.Applicative
 import           Control.Monad.Trans.State
 import           Data.Foldable (toList)
 import           Data.Maybe (isNothing)
@@ -9,12 +10,16 @@ import           Data.Maybe (isNothing)
 -- A data type that simulates breaking from a loop.
 data Terminate a = Terminate {
   isBreaking :: Bool,
-  information :: a}
+  information :: a
+  }
+
+instance Eq a => Eq (Terminate a) where
+  (==) = (. information) . (==) . information
 
 instance Functor Terminate where
   fmap f (Terminate bool info)
     = Terminate bool $ f info
-
+  
 
 -- Functions
 
@@ -55,3 +60,7 @@ forMTerminate_ xs f
       if isBreaking raw
         then return $ Terminate True ()
         else forMT_ xs f
+
+breakLoop, continueLoop :: Monad m => m (Terminate ())
+breakLoop    = return (Terminate True ())
+continueLoop = return (Terminate False ())
