@@ -306,11 +306,12 @@ Conducts topological sort on directed acylic graphs (DAG).
     * If no such path exists, then Nothing.  
   * Pre: The given nodes are in the graph.  
 
-* `depthFirstS :: Graph a => Int -> a -> Bool -> (Int -> State (Terminate b) ()) -> (Int -> State (Terminate b) ()) -> State ((Set Int, Set Int), (Terminate b)) ()`  
+* `depthFirstS :: Graph a => Int -> a -> Bool -> (Int -> State b (Terminate c)) -> (Int -> State b (Terminate d)) -> State ((Set Int, Set Int), b) (Terminate ())`  
   * A State that simulates Depth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search.  
   * The polymorphic type 'a' represents the graph.  
-  * The polymorphic type 'b' represents the information produced by the search, e.g. a spanning tree or a list of nodes in some specific order.  
+  * The polymorphic type 'b' represents the information produced by the search, e.g. a spanning tree or a list of nodes in some specific order;  
+  * The polymorphic types 'c' and 'd' can be anything.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `Graph a => a`:**  
@@ -319,26 +320,29 @@ Conducts topological sort on directed acylic graphs (DAG).
     * If False, then the search will terminate when a cycle is encountered;  
     * If True, then the search will continue when a cycle is encountered;  
     * Note that here an undirected arc is considered as a cycle as well.  
-  * **Argument 4 `Int -> State (Terminate b) ()`:**  
+  * **Argument 4 `Int -> State b (Terminate c)`:**  
     * This function will be called whenever the search passes a new node for the FIRST time.  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information, wrapped in a `Terminate` (TODO: Add documentation for Terminate);  
-      * If it terminates (`isBreaking info == True`), then the search will terminate.  
-  * **Argument 5 `(Int -> State (Maybe b) ())`:**  
+      * A State that updates the information and returns a `Terminate` (TODO: Add documentation for Terminate);  
+      * If it terminates (ends in `breakLoop`), then the search will terminate;  
+      * Otherwise (ends in `continueLoop`), the search will continue;  
+      * Termination is used in the occasion where it is OK to end the search prematurely.  
+  * **Argument 5 `(Int -> State b (Terminate d))`:**  
     * This function will be called whenever the search passes a new node for the LAST time.  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
       * A State that updates the information, wrapped in a `Terminate`;  
-      * If it terminates (`isBreaking info == True`), then the search will terminate.  
+      * If it terminates (ends in `breakLoop`), then the search will terminate;  
+      * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Result:**  
     * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
-    * To make a valid search, the initial state should be in the form of `Just ((empty, empty), Terminate False info)`, where empty is the empty Set.  
+    * To make a valid search, the initial state should be in the form of `Just ((empty, empty), info)`, where empty is the empty Set.  
   * Pre: The given node is in the graph.  
 
-* `breadthFirstS :: Graph a => Int -> a -> (Int -> State (Terminate b) ()) -> (Int -> State (Terminate b) ()) -> State ((Set Int, Seq Int), (Terminate b)) ()`  
+* `breadthFirstS :: Graph a => Int -> a -> (Int -> State b (Terminate c)) -> (Int -> State b (Terminate d)) -> State ((Set Int, Set Int), b) (Terminate ())`  
   * A State that simulates Breadth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search.  
   * The polymorphic type 'a' represents the graph.  
@@ -352,16 +356,18 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information, wrapped in a `Terminate`;  
-      * If it terminates (`isBreaking info == True`), then the search will terminate.  
+      * A State that updates the information and returns a `Terminate` (TODO: Add documentation for Terminate);  
+      * If it terminates (ends in `breakLoop`), then the search will terminate;  
+      * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Argument 4 `Int -> State (Terminate b) ()`:**  
     * This function will be called whenever the search passes a new node for the LAST time (when the node is popped from the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information, wrapped in a `Terminate`;  
-      * If it terminates (`isBreaking info == True`), then the search will terminate.  
+      * A State that updates the information and returns a `Terminate` (TODO: Add documentation for Terminate);  
+      * If it terminates (ends in `breakLoop`), then the search will terminate;  
+      * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Result:**  
     * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
-    * To make a valid search, the initial state should be in the form of `Just ((Data.Set.empty, Data.Sequence.empty), Terminate False info)`.  
+    * To make a valid search, the initial state should be in the form of `Just ((Data.Set.empty, Data.Sequence.empty), info)`.  
   * Pre: The given node is in the graph.  

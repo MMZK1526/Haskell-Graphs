@@ -13,7 +13,9 @@ import           Data.Maybe (isNothing)
 type Terminate a = Either a a
 
 
--- Functions:
+--------------------------------------------------------------------------------
+-- Breaking from loops
+--------------------------------------------------------------------------------
 
 terminate :: Terminate a -> Terminate a
 terminate 
@@ -28,19 +30,12 @@ information (Left a)
 information (Right a)
   = a
 
--- runWhenJust returns () when the input is Nothing, and applies the state
--- when the input is a Just.
-runWhenJust :: Maybe a -> State b () -> State b ()
-runWhenJust m f
-  | isNothing m = return ()
-  | otherwise   = f
-
--- runUntilBreak returns () when the input indicates termination, 
+-- runUnlessBreak returns (Terminate ()) when the input indicates termination, 
 -- and applies the state it does not terminate.
-runUntilBreak :: Terminate a -> State b () -> State b ()
-runUntilBreak m f
-  | isBreaking m = return ()
-  | otherwise    = f
+runUnlessBreak :: Terminate a -> State b (Terminate c) -> State b (Terminate ())
+runUnlessBreak m f
+  | isBreaking m = breakLoop
+  | otherwise    = f >>= return . flag
 
 -- forMBreak_ maps elements of a foldable to a terminable monadic action, 
 -- and breaks the iteration when the action indicates termination.
@@ -63,5 +58,27 @@ forMBreak_ xs f
         else forMB_ xs f
 
 breakLoop, continueLoop :: Monad m => m (Terminate ())
-breakLoop    = return (Left ())
-continueLoop = return (Right ())
+breakLoop    = return breakFlag
+continueLoop = return continueFlag
+
+breakFlag, continueFlag :: Terminate ()
+breakFlag    = Left ()
+continueFlag = Right ()
+
+flag :: Terminate a -> Terminate ()
+flag (Left _)
+  = Left ()
+flag (Right _)
+  = Right ()
+
+
+--------------------------------------------------------------------------------
+-- Miscellaneous
+--------------------------------------------------------------------------------
+
+-- runWhenJust returns () when the input is Nothing, and applies the state
+-- when the input is a Just.
+runWhenJust :: Maybe a -> State b () -> State b ()
+runWhenJust m f
+  | isNothing m = return ()
+  | otherwise   = f
