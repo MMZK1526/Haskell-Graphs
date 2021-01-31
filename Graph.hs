@@ -1,6 +1,6 @@
 {-# LANGUAGE InstanceSigs #-}
 
--- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs
+-- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
 module Graph where
 
@@ -57,38 +57,38 @@ class Graph a where
   initUGraph = flip addUArcs . flip initGraph []
 
   -- Initialise a weighted graph, where the second argument has the form of
-  -- ((node1, node2), weight)
+  -- ((node1, node2), weight).
   initWGraph :: [Int] -> [((Int, Int), Int)] -> a
   initWGraph = flip addWArcs . flip addNodes emptyGraph
 
-  -- Adds the arcs specified by the list of pairs in the second argument.
+  -- Adds the arcs specified by the list of pairs in the first argument.
   -- If the graph is considered as a weighted graph, this adds the weight of
   -- the arcs by 1.
-  -- Pre: the node indices in the arc list are in the graph.
+  -- Pre: the node in the arc list are in the graph.
   addArcs :: [(Int, Int)] -> a -> a
   addArcs = addWArcs . (flip (,) 1 <$>)
 
   -- Similar to above, but the arcs are undirected (both n to n' and n' to n).
-  -- Pre: the node indices in the arc list are in the graph.
+  -- Pre: the node in the arc list are in the graph.
   addUArcs :: [(Int, Int)] -> a -> a
 
-  -- Adds weighted arcs specified by the list of pairs in the second argument.
+  -- Adds weighted arcs specified by the list of pairs in the first argument.
   -- Example: ((3, 4), 10) means an arc from node 3 to node 4 with weight 10.
-  -- Pre: the node indices in the arc list are in the graph.
+  -- Pre: the node in the arc list are in the graph.
   addWArcs :: [((Int, Int), Int)] -> a -> a
 
   -- Adds the nodes indicated by the list to the graph, ignoring exising nodes.
-  -- There are no arcs between the new nodes
+  -- There are no arcs from or to the new nodes.
   addNodes :: [Int] -> a -> a
 
   -- Remove the given arcs with all of its parallels.
   -- Note that an arc with weight zero is not an arc that doesn't exist,
   -- Thus use setWeights to set weights to zero if that is the goal.
-  -- Pre: the node indices in the arc list are in the graph.
+  -- Pre: the node in the arc list are in the graph.
   removeArcs :: [(Int, Int)] -> a -> a
 
   -- Similar to above, but undirected (removes both n to n' and n' to n).
-  -- Pre: the node indices in the arc list are in the graph.
+  -- Pre: the node in the arc list are in the graph.
   removeUArcs :: [(Int, Int)] -> a -> a
 
   removeNodes :: [Int] -> a -> a
@@ -98,8 +98,8 @@ class Graph a where
   -- Pre: the nodes in the arc are in the graph.
   weight :: (Int, Int) -> a -> Maybe Int
 
-  -- Sets the weight of the given arc.
-  -- Pre: the node indices in the arc list are in the graph.
+  -- Sets the weight of the given arcs.
+  -- Pre: the node in the arc list are in the graph.
   setWeights :: [((Int, Int), Int)] -> a -> a
 
   -- Converts the graph to simple graph by removing all parallels and loops.
@@ -111,7 +111,7 @@ class Graph a where
   -- Returns the list of nodes.
   nodes :: a -> [Int]
 
-  -- Returns the number of nodes
+  -- Returns the number of nodes.
   numNodes :: a -> Int
   numNodes = length . nodes
 
@@ -127,7 +127,7 @@ class Graph a where
   -- Pre: the node is in the graph and the graph is indeed undirected.
   degree :: Int -> a -> Int
 
-  -- Returns the list of nodes connects from the given node
+  -- Returns the list of nodes connects from the given node.
   -- Pre: the node is in the graph.
   neighbours :: Int -> a -> [Int]
 

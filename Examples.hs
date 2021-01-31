@@ -1,6 +1,6 @@
--- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs
+-- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
--- Examples of creating graphs and applying algorithms
+-- Examples of creating graphs and applying algorithms.
 
 import           Data.Maybe
 
