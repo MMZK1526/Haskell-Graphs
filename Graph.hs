@@ -9,7 +9,7 @@ module Graph where
 
 import           Control.Monad
 import           Control.Monad.Trans.State
-import           Data.Foldable (toList)
+import           Data.Foldable (foldl', toList)
 import           Data.List (intercalate)
 import           Data.Maybe (fromJust, isNothing, maybe)
 import           Data.Tuple (swap)
@@ -257,13 +257,3 @@ instance Graph GraphList where
 
   neighbours :: Int -> GraphList -> [Int]
   neighbours = (keys .) . flip ((!) . nodeList)
-
-
--- Utilities
-
--- runWhenJust returns () when the input is Nothing, and applies the state
--- when the input is a Just.
-runWhenJust :: Maybe a -> State b () -> State b ()
-runWhenJust m f
-  | isNothing m = return ()
-  | otherwise   = f
