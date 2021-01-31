@@ -4,28 +4,29 @@ module Utilities where
 
 import           Control.Applicative
 import           Control.Monad.Trans.State
+import           Data.Either
 import           Data.Foldable (toList)
 import           Data.Maybe (isNothing)
 
--- A data type that simulates breaking from a loop.
-data Terminate a = Terminate {
-  isBreaking :: Bool,
-  information :: a
-  }
 
-instance Eq a => Eq (Terminate a) where
-  (==) = (. information) . (==) . information
+-- A data type that simulates breaking from a loop:
+type Terminate a = Either a a
 
-instance Functor Terminate where
-  fmap f (Terminate bool info)
-    = Terminate bool $ f info
-  
 
--- Functions
+-- Functions:
 
 terminate :: Terminate a -> Terminate a
-terminate (Terminate _ a)
-  = Terminate True a
+terminate 
+  = Left . information
+
+isBreaking :: Terminate a -> Bool
+isBreaking = isLeft
+
+information :: Terminate a -> a
+information (Left a)
+  = a
+information (Right a)
+  = a
 
 -- runWhenJust returns () when the input is Nothing, and applies the state
 -- when the input is a Just.
@@ -41,26 +42,26 @@ runUntilBreak m f
   | isBreaking m = return ()
   | otherwise    = f
 
--- forMTerminate_ maps elements of a foldable to a terminable monadic action, 
+-- forMBreak_ maps elements of a foldable to a terminable monadic action, 
 -- and breaks the iteration when the action indicates termination.
 -- If action never terminates, in other words, if it is always in the form of 
--- m (Terminate False _), forMTerminate_ is similar to forM_.
-forMTerminate_ :: (Foldable f, Monad m) 
+-- m (Terminate False _), forMBreak_ is similar to forM_.
+forMBreak_ :: (Foldable f, Monad m) 
   => f a 
   -> (a -> m (Terminate b)) 
   -> m (Terminate ())
-forMTerminate_ xs f
-  = forMT_ xs' f
+forMBreak_ xs f
+  = forMB_ xs' f
   where
     xs' = toList xs
-    forMT_ [] f
-      = return $ Terminate False ()
-    forMT_ (x : xs) f = do
+    forMB_ [] f
+      = return $ Right ()
+    forMB_ (x : xs) f = do
       raw <- f x
       if isBreaking raw
-        then return $ Terminate True ()
-        else forMT_ xs f
+        then return $ Left ()
+        else forMB_ xs f
 
 breakLoop, continueLoop :: Monad m => m (Terminate ())
-breakLoop    = return (Terminate True ())
-continueLoop = return (Terminate False ())
+breakLoop    = return (Left ())
+continueLoop = return (Right ())

@@ -61,15 +61,15 @@ depthFirstNodes n graph
   where
     -- Contains sets of visited nodes (first pass), exited nodes (last pass),
     -- and a list of nodes with their depth. Starts with all empty.
-    initial = ((S.empty, S.empty),  Terminate False (0, IM.empty))
+    initial = ((S.empty, S.empty),  return (0, IM.empty))
     dfs x   = depthFirstS x graph True (\n -> do
       raw <- get
       let (d, ns) = information raw
-      put $ Terminate False (d + 1, IM.insert n d ns)
+      put $ return (d + 1, IM.insert n d ns)
       ) $ \_ -> do
       raw <- get
       let (d, ns) = information raw
-      put $ Terminate False (d - 1, ns)
+      put $ return (d - 1, ns)
 
 -- Traverses the graph using Depth-First Search from a given node
 -- and returns the corresponding spanning tree.
@@ -80,18 +80,18 @@ depthFirstTree n graph
   where
     -- Contains sets of visited nodes (first pass), exited nodes (last pass),
     -- and a graph that builds towards the spanning tree.
-    initial    = ((S.empty, S.empty), Terminate False ([], startGraph))
+    initial    = ((S.empty, S.empty), return ([], startGraph))
     startGraph = initGraph (nodes graph) []
     dfs x      = depthFirstS x graph True (\n -> do
       raw <- get
       let (st, g) = information raw
       put $ if null st
-        then Terminate False (n : st, g)
-        else Terminate False (n : st, addUArcs [(head st, n)] g)
+        then return (n : st, g)
+        else return (n : st, addUArcs [(head st, n)] g)
       ) $ \_ -> do
       raw <- get
       let (st, g) = information raw
-      put $ Terminate False (tail st, g)
+      put $ return (tail st, g)
 
 -- Topological sorting of a directed acyclic graph (DAG).
 -- If the graph contains a cycle, will return Nothing.
@@ -101,11 +101,11 @@ topologicalSort graph
   | otherwise         = Just $ information result
   where
     result   = snd (execState (forM_ (nodes graph) tSortS) initial)
-    initial  = ((S.empty, S.empty), Terminate False [])
+    initial  = ((S.empty, S.empty), return [])
     -- Runs the Depth-First Search on each of the nodes.
     tSortS x = depthFirstS x graph False (const $ return ()) $ \n -> do
       raw <- get
-      put $ Terminate False (n : information raw)
+      put $ return (n : information raw)
 
 -- A State that simulates Breadth-First Search.
 -- This function is convoluted and is not necessary unless you need to do custom
@@ -146,15 +146,15 @@ breadthFirstNodes :: Graph a => Int -> a -> IntMap Int
 breadthFirstNodes n graph
   = snd $ information (snd (execState (bfs n) initial))
   where
-    initial = ((S.empty, fromList []), Terminate False (0, IM.empty))
+    initial = ((S.empty, fromList []), return (0, IM.empty))
     bfs x   = breadthFirstS x graph (\n -> do
       raw <- get
       let (d, ns) = information raw
-      put $ Terminate False (d, IM.insert n d ns)
+      put $ return (d, IM.insert n d ns)
       ) $ \n -> do
       raw <- get
       let (_, ns) = information raw
-      put $ Terminate False (ns ! n + 1, ns)
+      put $ return (ns ! n + 1, ns)
 
 -- Traverses the graph using Breadth-First Search from a given node
 -- and returns the corresponding spanning tree.
@@ -165,16 +165,16 @@ breadthFirstTree n graph
   where
     -- The information contains a Maybe Int that stores the potential parent,
     -- which is Nothing for the root, and a graph that builds towards the tree.
-    initial    = ((S.empty, fromList []), Terminate False (Nothing, startGraph))
+    initial    = ((S.empty, fromList []), return (Nothing, startGraph))
     startGraph = initGraph (nodes graph) []
     bfs x      = breadthFirstS x graph (\n -> do
       raw <- get
       let (p, g) = information raw
-      runWhenJust p $ put (Terminate False (p, addUArcs [(fromJust p, n)] g))
+      runWhenJust p $ put (return (p, addUArcs [(fromJust p, n)] g))
       ) $ \n -> do
       raw <- get
       let (_, g) = information raw
-      put $ Terminate False (Just n, g)
+      put $ return (Just n, g)
 
 -- Returns True if the undirected graph is connected.  
 -- Pre: The graph is undirected.  
@@ -184,7 +184,7 @@ isConnected graph
   where
     sz      = numNodes graph
     node    = head $ nodes graph
-    initial = ((S.empty, fromList []), Terminate False 0)
+    initial = ((S.empty, fromList []), return 0)
     bfs n   = breadthFirstS n graph (\n -> do
       raw <- get
       put $ (+ 1) <$> raw
@@ -202,9 +202,19 @@ isStronglyConnected graph
     -- h is the root while t contains all the non-root nodes.
     (h : t)   = nodes graph
     -- initial holds the information of all nodes that can reach to the root.
-    initial   = (inner, Terminate False $ fromDescList [h])
+    initial   = (inner, return $ fromDescList [h])
     -- If not strongly connected, traceBack returns Terminate True ().
-    traceBack = evalState (forMTerminate_ t test) initial
+    traceBack = evalState (forMBreak_ t $ \x -> do
+      raw <- get
+      let (_, info) = execState (bfs x) raw
+      -- If the search terminated early, it means this node reaches a node that
+      -- is known to be connected to the root. Otherwise it is not connected.
+      if isBreaking info
+        then do
+          put (inner, info)
+          continueLoop
+        else breakLoop
+      ) initial
     -- The search terminates when the frontier contains a node that is in the
     -- information, which means it can lead to the root.
     bfs x     = breadthFirstS x graph (\n -> do
@@ -213,20 +223,7 @@ isStronglyConnected graph
         then terminate raw
         else S.insert n <$> raw
       ) (const $ return ())
-    test x    = do
-      raw <- get
-      let (_, Terminate bool info) = execState (bfs x) raw
-      -- If the search terminated prematurely, it means this node either reached
-      -- the root itself, or reached a node that is known to be connected to the
-      -- root. Then we run the search on the next node.
-      -- If it did not terminate prematurely, it means the search has traversed
-      -- all possible nodes and still did not reach the root. Then the graph is
-      -- not strongly connected.
-      if bool
-        then do
-          put (inner, Terminate False info)
-          continueLoop
-        else breakLoop
+      
 
 -- Returns the (unweighted) distance between two nodes;  
 -- If unreachable returns Nothing.  
