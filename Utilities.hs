@@ -15,12 +15,12 @@ import           Data.Maybe (isNothing)
 -- Loop Break Controls
 --------------------------------------------------------------------------------
 
--- A data type that simulates breaking from a loop:
-type Terminate a = Either a a
-
--- A type class that can be interpreted as a state of breaking
+-- A type class that can be interpreted as a state of breaking.
 class (Flaggable a) where
   isBreaking :: a -> Bool
+
+-- A data type that simulates breaking from a loop.
+type Terminate a = Either a a
 
 instance {-# OVERLAPPABLE #-} Flaggable (Either a b) where
   isBreaking = isLeft
@@ -98,7 +98,7 @@ forMBreak_ xs m
     forMB_ (x : xs) m 
       = m x >>= flip breakWhen (forMB_ xs m) . isBreaking
 
--- doWhile iterates the terminable monadic action until it returns breakFlag, 
+-- loop_ iterates the terminable monadic action until it returns breakFlag, 
 -- disgarding the results wrapped in the Terminate.
 loop_ :: (Monad m, Flaggable l) => m l -> m (Terminate ())
 loop_ m 
