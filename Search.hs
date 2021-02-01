@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
 module Search where
@@ -28,33 +30,29 @@ import           Utilities
 -- This function is convoluted and is not necessary unless you need to do custom
 -- actions during the Depth-First Search.
 -- See full documentation in README.md.
-depthFirstS :: Graph a 
+depthFirstS :: (Graph a, Flaggable l1, Flaggable l2)
   => Int 
   -> a 
   -> Bool 
-  -> (Int -> State b (Terminate c)) 
-  -> (Int -> State b (Terminate d)) 
+  -> (Int -> State b l1) 
+  -> (Int -> State b l2) 
   -> State ((Set Int, Set Int), b) (Terminate ())
 depthFirstS x graph allowCycle fEnter fExit
   = dfs continueFlag x
   where
     dfs b x = runUnlessBreak b $ do
       ((nIn, nOut), t) <- get
-      if S.member x nIn
-        then continueLoop
-        else do
-          let (b', result) = runState (fEnter x) t
-          put ((S.insert x nIn, nOut), result)
-          b' <- forMBreak_ (neighbours x graph) $ \y -> if S.member y nIn
-            then breakUpon (not $ S.member y nOut || allowCycle)
-            else do 
-              b' <- dfs (flag b') y 
-              return $ flag b'
-          ((nIn, nOut), t) <- get
-          runUnlessBreak b' $ do 
-            let (b', result) = runState (fExit x) t
-            put ((nIn, S.insert x nOut), result)
-            return $ flag b'
+      continueWhen (S.member x nIn) $ do
+        let (b', res) = runState (fEnter x) t
+        put ((S.insert x nIn, nOut), res)
+        b' <- forMBreak_ (neighbours x graph) $ \y -> if S.member y nIn
+          then breakUpon (not $ S.member y nOut || allowCycle)
+          else dfs (flag b') y >>= return . flag
+        ((nIn, nOut), t) <- get
+        runUnlessBreak b' $ do 
+          let (b', res) = runState (fExit x) t
+          put ((nIn, S.insert x nOut), res)
+          return $ flag b'
 
 -- Traverses the graph using Depth-First Search from a given node
 -- and returns the list of passed nodes and their depths.
@@ -69,11 +67,9 @@ depthFirstNodes n graph
     dfs x   = depthFirstS x graph True (\n -> do
       (d, ns) <- get
       put (d + 1, IM.insert n d ns)
-      continueLoop
       ) $ \_ -> do
       (d, ns) <- get
       put (d - 1, ns)
-      continueLoop
 
 -- Traverses the graph using Depth-First Search from a given node
 -- and returns the corresponding spanning tree.
@@ -91,11 +87,9 @@ depthFirstTree n graph
       put $ if null st
         then (n : st, g)
         else (n : st, addUArcs [(head st, n)] g)
-      continueLoop
       ) $ \_ -> do
       (st, g) <- get
       put (tail st, g)
-      continueLoop
 
 -- Topological sorting of a directed acyclic graph (DAG).
 -- If the graph contains a cycle, will return Nothing.
@@ -110,17 +104,16 @@ topologicalSort graph
     tSortS x = depthFirstS x graph False (const continueLoop) $ \n -> do
       ns <- get
       put (n : ns)
-      continueLoop
 
 -- A State that simulates Breadth-First Search.
 -- This function is convoluted and is not necessary unless you need to do custom
 -- actions during the Breadth-First Search.
 -- See full documentation in README.md.
-breadthFirstS :: Graph a 
+breadthFirstS :: (Graph a, Flaggable l1, Flaggable l2) 
   => Int 
   -> a 
-  -> (Int -> State b (Terminate c)) 
-  -> (Int -> State b (Terminate d)) 
+  -> (Int -> State b l1) 
+  -> (Int -> State b l2) 
   -> State ((Set Int, Seq Int), b) (Terminate ())
 breadthFirstS x graph fEnter fExit = do
   ((nIn, queue), t) <- get
@@ -139,13 +132,11 @@ breadthFirstS x graph fEnter fExit = do
           let (b', res) = runState (fExit q) t
           put ((nIn, qs), res)
           b' <- forMBreak_ (neighbours q graph) 
-            $ \x -> runUnlessBreak b' $ if S.member x nIn
-            then continueLoop
-            else do 
-              ((nIn, qs), t) <- get
-              let (b', res) = runState (fEnter x) t
-              put ((S.insert x nIn, qs |> x), res)
-              return $ flag b'
+            $ \x -> runUnlessBreak b' $ continueWhen (S.member x nIn) $ do 
+            ((nIn, qs), t) <- get
+            let (b', res) = runState (fEnter x) t
+            put ((S.insert x nIn, qs |> x), res)
+            return $ flag b'
           bfs $ flag b'
 
 -- Traverses the graph using Breadth-First Search from a given node
@@ -159,11 +150,9 @@ breadthFirstNodes n graph
     bfs x   = breadthFirstS x graph (\n -> do
       (d, ns) <- get
       put (d, IM.insert n d ns)
-      continueLoop
       ) $ \n -> do
       (_, ns) <- get
       put (ns ! n + 1, ns)
-      continueLoop
 
 -- Traverses the graph using Breadth-First Search from a given node
 -- and returns the corresponding spanning tree.
@@ -179,11 +168,7 @@ breadthFirstTree n graph
     bfs x      = breadthFirstS x graph (\n -> do
       (p, g) <- get
       runWhenJust p $ put (p, addUArcs [(fromJust p, n)] g)
-      continueLoop
-      ) $ \n -> do
-      (_, g) <- get
-      put (Just n, g)
-      continueLoop
+      ) $ \n -> get >>= put . (Just n ,) . snd
 
 -- Returns True if the undirected graph is connected.  
 -- Pre: The graph is undirected.  
@@ -205,8 +190,8 @@ isConnected graph
 -- picked), then check if the all nodes are reachable from the root.
 isStronglyConnected :: Graph a => a -> Bool
 isStronglyConnected graph
-  | numNodes graph == 0 = True
-  | otherwise           = not (isBreaking traceBack) && isConnected graph
+  | null $ nodes graph = True
+  | otherwise          = not (isBreaking traceBack) && isConnected graph
   where
     inner     = (S.empty, fromList [])
     -- h is the root while t contains all the non-root nodes.
@@ -216,20 +201,15 @@ isStronglyConnected graph
     -- If not strongly connected, traceBack returns Terminate True ().
     traceBack = evalState (forMBreak_ t $ \x -> do
       (_, ns) <- get
-      let info = evalState (bfs x) (inner, ns)
       -- If the search terminated early, it means this node reaches a node that
       -- is known to be connected to the root. Otherwise it is not connected.
-      if isBreaking info
-        then continueLoop
-        else breakLoop
+      breakUpon (not $ isBreaking (evalState (bfs x) (inner, ns)))
       ) initial
     -- The search terminates when the frontier contains a node that is in the
     -- information, which means it can lead to the root.
     bfs x     = breadthFirstS x graph (\n -> do
       ns <- get
-      if S.member n ns
-        then breakLoop
-        else put (S.insert n ns) >> continueLoop
+      breakWhen (S.member n ns) $ put (S.insert n ns) >> continueLoop
       ) (const continueLoop)
       
 -- Returns the (unweighted) distance between two nodes;  

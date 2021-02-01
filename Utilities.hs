@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Utilities where
 
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
@@ -16,14 +18,19 @@ import           Data.Maybe (isNothing)
 -- A data type that simulates breaking from a loop:
 type Terminate a = Either a a
 
-terminate :: Terminate a -> Terminate a
+-- A type class that can be interpreted as a state of breaking
+class (Flaggable a) where
+  isBreaking :: a -> Bool
+
+instance {-# OVERLAPPABLE #-} Flaggable (Either a b) where
+  isBreaking = isLeft
+
+instance {-# OVERLAPPABLE #-} Flaggable a where
+  isBreaking = const False
+
+terminate, start :: Terminate a -> Terminate a
 terminate = Left . information
-
-start :: Terminate a -> Terminate a
-start = Right . information
-
-isBreaking :: Terminate a -> Bool
-isBreaking = isLeft
+start     = Right . information
 
 information :: Terminate a -> a
 information (Left a)
@@ -31,19 +38,18 @@ information (Left a)
 information (Right a)
   = a
 
-breakLoop, continueLoop :: Monad m => m (Terminate ())
-breakLoop    = return breakFlag
-continueLoop = return continueFlag
-
 breakFlag, continueFlag :: Terminate ()
 breakFlag    = Left ()
 continueFlag = Right ()
 
-flag :: Terminate a -> Terminate ()
-flag (Left _)
-  = Left ()
-flag _
-  = Right ()
+breakLoop, continueLoop :: Monad m => m (Terminate ())
+breakLoop    = return breakFlag
+continueLoop = return continueFlag
+
+flag :: Flaggable l => l -> Terminate ()
+flag l
+  | isBreaking l = Left ()
+  | otherwise    = Right ()
 
 -- breakloop if the predicate is true; otherwise continueloop
 breakUpon :: Monad m => Bool -> m (Terminate ())
@@ -53,34 +59,35 @@ breakUpon _
   = continueLoop
 
 -- Runs the monadic action if the predicate is true; otherwise continueLoop.
-continueWhen :: Monad m => Bool -> m (Terminate a) -> m (Terminate ())
+continueWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
 continueWhen True _
   = continueLoop
-continueWhen False m
+continueWhen _ m
   = m >>= return . flag
 
--- Runs the monadic action if the predicate is true; otherwise continueLoop.
-breakWhen :: Monad m => Bool -> m (Terminate a) -> m (Terminate ())
+-- Runs the monadic action if the predicate is true; otherwise breakLoop.
+breakWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
 breakWhen True _
   = breakLoop
-breakWhen False m
+breakWhen _ m
   = m >>= return . flag
 
 -- runUnlessBreak returns (breakFlag) when the input indicates termination, 
 -- and applies the monadic action if it does not terminate.
-runUnlessBreak :: Monad m => Terminate a -> m (Terminate b) -> m (Terminate ())
-runUnlessBreak b m
-  | isBreaking b = breakLoop
-  | otherwise    = m >>= return . flag
+runUnlessBreak :: (Monad m, Flaggable l1, Flaggable l2) 
+  => l1 
+  -> m l2 
+  -> m (Terminate ())
+runUnlessBreak = breakWhen . isBreaking
 
 -- forMBreak_ maps elements of a foldable to a terminable monadic action, 
 -- and breaks the iteration when the action indicates termination.
 -- The results wrapped in the Terminate is disgarded.
 -- If the action never terminates, in other words, if it is always in the form 
 -- of m (continueFlag), forMBreak_ is similar to forM_.
-forMBreak_ :: (Foldable f, Monad m) 
+forMBreak_ :: (Foldable f, Monad m, Flaggable l) 
   => f a 
-  -> (a -> m (Terminate b)) 
+  -> (a -> m l) 
   -> m (Terminate ())
 forMBreak_ xs m
   = forMB_ xs' m
@@ -93,9 +100,9 @@ forMBreak_ xs m
 
 -- doWhile iterates the terminable monadic action until it returns breakFlag, 
 -- disgarding the results wrapped in the Terminate.
-doWhile_ :: Monad m => m (Terminate a) -> m (Terminate ())
-doWhile_ m 
-  = m >>= flip breakWhen m . isBreaking
+loop_ :: (Monad m, Flaggable l) => m l -> m (Terminate ())
+loop_ m 
+  = m >>= \s -> breakWhen (isBreaking s) (loop_ m)
 
 
 --------------------------------------------------------------------------------
