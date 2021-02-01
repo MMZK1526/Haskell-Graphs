@@ -4,22 +4,23 @@ module Utilities where
 
 import           Control.Applicative
 import           Control.Monad.Trans.State
-import           Data.Either
+import           Data.Either (Either(..), isLeft, isRight)
 import           Data.Foldable (toList)
 import           Data.Maybe (isNothing)
 
 
+--------------------------------------------------------------------------------
+-- Loop Break Controls
+--------------------------------------------------------------------------------
+
 -- A data type that simulates breaking from a loop:
 type Terminate a = Either a a
 
-
---------------------------------------------------------------------------------
--- Breaking from loops
---------------------------------------------------------------------------------
-
 terminate :: Terminate a -> Terminate a
-terminate 
-  = Left . information
+terminate = Left . information
+
+start :: Terminate a -> Terminate a
+start = Right . information
 
 isBreaking :: Terminate a -> Bool
 isBreaking = isLeft
@@ -29,33 +30,6 @@ information (Left a)
   = a
 information (Right a)
   = a
-
--- runUnlessBreak returns (Terminate ()) when the input indicates termination, 
--- and applies the state it does not terminate.
-runUnlessBreak :: Terminate a -> State b (Terminate c) -> State b (Terminate ())
-runUnlessBreak m f
-  | isBreaking m = breakLoop
-  | otherwise    = f >>= return . flag
-
--- forMBreak_ maps elements of a foldable to a terminable monadic action, 
--- and breaks the iteration when the action indicates termination.
--- If action never terminates, in other words, if it is always in the form of 
--- m (Terminate False _), forMBreak_ is similar to forM_.
-forMBreak_ :: (Foldable f, Monad m) 
-  => f a 
-  -> (a -> m (Terminate b)) 
-  -> m (Terminate ())
-forMBreak_ xs f
-  = forMB_ xs' f
-  where
-    xs' = toList xs
-    forMB_ [] f
-      = return $ Right ()
-    forMB_ (x : xs) f = do
-      raw <- f x
-      if isBreaking raw
-        then return $ Left ()
-        else forMB_ xs f
 
 breakLoop, continueLoop :: Monad m => m (Terminate ())
 breakLoop    = return breakFlag
@@ -68,24 +42,69 @@ continueFlag = Right ()
 flag :: Terminate a -> Terminate ()
 flag (Left _)
   = Left ()
-flag (Right _)
+flag _
   = Right ()
 
--- Break if the predicate is true.
+-- breakloop if the predicate is true; otherwise continueloop
 breakUpon :: Monad m => Bool -> m (Terminate ())
 breakUpon True
   = breakLoop
 breakUpon _
   = continueLoop
 
+-- Runs the monadic action if the predicate is true; otherwise continueLoop.
+continueWhen :: Monad m => Bool -> m (Terminate a) -> m (Terminate ())
+continueWhen True _
+  = continueLoop
+continueWhen False m
+  = m >>= return . flag
+
+-- Runs the monadic action if the predicate is true; otherwise continueLoop.
+breakWhen :: Monad m => Bool -> m (Terminate a) -> m (Terminate ())
+breakWhen True _
+  = breakLoop
+breakWhen False m
+  = m >>= return . flag
+
+-- runUnlessBreak returns (breakFlag) when the input indicates termination, 
+-- and applies the monadic action if it does not terminate.
+runUnlessBreak :: Monad m => Terminate a -> m (Terminate b) -> m (Terminate ())
+runUnlessBreak b m
+  | isBreaking b = breakLoop
+  | otherwise    = m >>= return . flag
+
+-- forMBreak_ maps elements of a foldable to a terminable monadic action, 
+-- and breaks the iteration when the action indicates termination.
+-- The results wrapped in the Terminate is disgarded.
+-- If the action never terminates, in other words, if it is always in the form 
+-- of m (continueFlag), forMBreak_ is similar to forM_.
+forMBreak_ :: (Foldable f, Monad m) 
+  => f a 
+  -> (a -> m (Terminate b)) 
+  -> m (Terminate ())
+forMBreak_ xs m
+  = forMB_ xs' m
+  where
+    xs' = toList xs
+    forMB_ [] m
+      = continueLoop
+    forMB_ (x : xs) m 
+      = m x >>= flip breakWhen (forMB_ xs m) . isBreaking
+
+-- doWhile iterates the terminable monadic action until it returns breakFlag, 
+-- disgarding the results wrapped in the Terminate.
+doWhile_ :: Monad m => m (Terminate a) -> m (Terminate ())
+doWhile_ m 
+  = m >>= flip breakWhen m . isBreaking
+
 
 --------------------------------------------------------------------------------
 -- Miscellaneous
 --------------------------------------------------------------------------------
 
--- runWhenJust returns () when the input is Nothing, and applies the state
--- when the input is a Just.
-runWhenJust :: Maybe a -> State b () -> State b ()
+-- runWhenJust returns () when the input is Nothing, and applies the monadic
+-- action when the input is a Just.
+runWhenJust :: Monad m => Maybe a -> m b -> m ()
 runWhenJust m f
   | isNothing m = return ()
-  | otherwise   = f
+  | otherwise   = f >> return ()

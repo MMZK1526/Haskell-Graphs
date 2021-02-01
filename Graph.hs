@@ -115,11 +115,11 @@ class Graph a where
   numNodes :: a -> Int
   numNodes = length . nodes
 
-  -- The in degree of a node in a directed graph (weighted).
+  -- The indegree of a node in a directed graph (weighted).
   -- Pre: the node is in the graph.
   inDegree :: Int -> a -> Int
 
-  -- The out degree of a node in a directed graph (weighted).
+  -- The outdegree of a node in a directed graph (weighted).
   -- Pre: the node is in the graph.
   outDegree :: Int -> a -> Int
 
