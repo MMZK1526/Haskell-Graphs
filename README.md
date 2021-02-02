@@ -329,7 +329,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information and returns a `Terminate` (TODO: Add documentation for Terminate);  
+      * A State that updates the information and returns a `Terminate`;  
       * If it terminates (ends in `breakLoop`), then the search will terminate;  
       * Otherwise (ends in `continueLoop`), the search will continue;  
       * Termination is used in the occasion where it is OK to end the search prematurely.  
@@ -361,7 +361,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information and returns a `Terminate` (**TODO: Add documentation for Terminate**);  
+      * A State that updates the information and returns a `Terminate`;  
       * If it terminates (ends in `breakLoop`), then the search will terminate;  
       * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Argument 4 `Int -> State b (Terminate d)`:**  
@@ -369,7 +369,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information and returns a `Terminate` (TODO: Add documentation for Terminate);  
+      * A State that updates the information and returns a `Terminate`;  
       * If it terminates (ends in `breakLoop`), then the search will terminate;  
       * Otherwise (ends in `continueLoop`), the search will continue;  
   * **Result:**  
@@ -380,8 +380,8 @@ Conducts topological sort on directed acylic graphs (DAG).
 # Utilities.hs
 Contains helper functions for the rest of the program, especially monad-related.  
 
-In the higher-order functions for Depth-First and Breadth-First Searches, the algorithm may halt the search based on a given condition (e.g. when a cycle is detected), in this case we would like a mechanism that simulates `break` in imperative languages such as `C`.  
-A natural way of doing so is to wrap the information in an `Eigher`.  
+In the higher-order functions for Depth-First and Breadth-First Searches, the algorithms may halt the search based on a given condition (e.g. when a cycle is detected), in this case we would like a mechanism that simulates `break` in imperative languages such as `C`.  
+A natural way of doing so is to wrap the information in an `Either`.  
 
 The following example shows how this works:  
 ```

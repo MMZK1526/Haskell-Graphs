@@ -46,6 +46,10 @@ breakLoop, continueLoop :: Monad m => m (Terminate ())
 breakLoop    = return breakFlag
 continueLoop = return continueFlag
 
+returnBreak, returnContinue :: Monad m => a -> m (Terminate a)
+returnBreak    = return . Left
+returnContinue = return . Right
+
 flag :: Flaggable l => l -> Terminate ()
 flag l
   | isBreaking l = Left ()
@@ -99,11 +103,19 @@ forMBreak_ xs m
       = m x >>= flip breakWhen (forMB_ xs m) . isBreaking
 
 -- loop_ iterates the terminable monadic action until it returns breakFlag, 
--- disgarding the results wrapped in the Terminate.
+-- discarding the results wrapped in the Terminate.
 loop_ :: (Monad m, Flaggable l) => m l -> m (Terminate ())
 loop_ m 
   = m >>= \s -> breakWhen (isBreaking s) (loop_ m)
 
+-- loop iterates the terminable monadic action until it returns breakFlag, 
+-- but does not discard the results.
+loop :: Monad m => a -> (a -> m (Terminate a)) -> m (Terminate a)
+loop i f = do
+  b <- f i
+  if isBreaking b
+    then return b
+    else loop (information b) f
 
 --------------------------------------------------------------------------------
 -- Miscellaneous
