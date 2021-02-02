@@ -9,6 +9,7 @@ import           Data.IntMap.Lazy (IntMap(..))
 
 import           Graph
 import           Search
+import           SpanningTree
 
 
 -------------------------------------------------------------------------------- 
@@ -214,3 +215,14 @@ k5BFSNodes = breadthFirstNodes 3 k5
 k5BFSTree :: GraphList
 k5BFSTree = breadthFirstTree 3 k5
 -- Through Breadth-First Search, the K5 graph is spanned by a depth-1 tree.
+
+
+-------------------------------------------------------------------------------- 
+-- Minimum Spanning Tree
+-------------------------------------------------------------------------------- 
+
+-- Examples of weighted graphs:
+wg1 :: GraphList
+wg1 
+  = initUWGraph [1..4] 
+  [((1, 2), 3), ((1, 3), 4), ((2, 4), 4), ((3, 4), 1), ((1, 4), 5)]

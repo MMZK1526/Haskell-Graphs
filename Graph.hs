@@ -61,6 +61,10 @@ class Graph a where
   initWGraph :: [Int] -> [((Int, Int), Int)] -> a
   initWGraph = flip addWArcs . flip addNodes emptyGraph
 
+  -- Similar to above, but initialises an undirected weighted graph.
+  initUWGraph :: [Int] -> [((Int, Int), Int)] -> a
+  initUWGraph = flip addUWArcs . flip addNodes emptyGraph
+
   -- Adds the arcs specified by the list of pairs in the first argument.
   -- If the graph is considered as a weighted graph, this adds the weight of
   -- the arcs by 1.
@@ -76,6 +80,10 @@ class Graph a where
   -- Example: ((3, 4), 10) means an arc from node 3 to node 4 with weight 10.
   -- Pre: the node in the arc list are in the graph.
   addWArcs :: [((Int, Int), Int)] -> a -> a
+
+  -- Similar to above, but the arcs are undirected and weighted.
+  -- Pre: the node in the arc list are in the graph.
+  addUWArcs :: [((Int, Int), Int)] -> a -> a
 
   -- Adds the nodes indicated by the list to the graph, ignoring exising nodes.
   -- There are no arcs from or to the new nodes.
@@ -160,7 +168,8 @@ instance Graph GraphList where
 
   addUArcs :: [(Int, Int)] -> GraphList -> GraphList
   addUArcs arcs g
-    = addArcs (arcs ++ fmap swap [(n, n') | (n, n') <- arcs, n /= n']) g
+    = addArcs (arcs ++ [(n', n) | (n, n') <- arcs, n /= n']) g
+
   addWArcs :: [((Int, Int), Int)] -> GraphList -> GraphList
   addWArcs arcs (LGraph sz list)
     = LGraph sz $ addWArcs' list arcs
@@ -174,6 +183,11 @@ instance Graph GraphList where
             | notMember n' l = m
             | notMember n' m = insert n' w m
             | otherwise      = adjust (+ w) n' m
+
+  addUWArcs arcs g
+    = addWArcs (arcs ++ recip) g
+    where
+      recip = [((n', n), w) | ((n, n'), w) <- arcs, n /= n']
 
   addNodes :: [Int] -> GraphList -> GraphList
   addNodes [] g
