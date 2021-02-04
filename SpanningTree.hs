@@ -4,7 +4,8 @@ module SpanningTree where
 
 import           Control.Monad
 import           Control.Monad.Trans.State
-import           Data.List (minimumBy)
+import           Data.Array.Unboxed hiding ((!))
+import           Data.List (maximum, minimum, minimumBy)
 import           Data.Maybe (fromJust)
 import           Prelude hiding (null)
 
@@ -19,36 +20,70 @@ import           Utilities
 
 
 --------------------------------------------------------------------------------
--- Prim's Algorithm
+-- Prim's Algorithm (Classic)
 --------------------------------------------------------------------------------
 
--- Pre: The graph is undirected and the given node is in the graph.
-prim :: Graph a => a -> Maybe a
-prim graph
+-- Returns the Minimum Spanning Tree via Prim's Algorithm.
+-- Pre: The graph is undirected.
+primMST :: Graph a => a -> Maybe a
+primMST graph
   | sz == 0      = Just emptyGraph
-  | size k == sz = Just t
-  | otherwise    = Nothing
+  | isBreaking b = Nothing
+  | otherwise    = Just t
   where
-    sz          = numNodes graph
-    root        = head $ nodes graph
-    initAdj     = execState (forM_ (neighbours root graph) $ \s -> do
+    sz     = numNodes graph
+    (b, t) = runState (primS graph $ \s e w -> do
+      tree <- get
+      put $ addUWArcs [((s, e), w)] tree
+      ) (initUGraph (nodes graph) [])
+
+-- Returns the total weight of the Minimum Spanning Tree via Prim's Algorithm.
+-- Pre: The graph is undirected.
+primMSTWeights :: Graph a => a -> Maybe Int
+primMSTWeights graph
+  | sz == 0      = Just 0
+  | isBreaking b = Nothing
+  | otherwise    = Just t
+  where
+    sz = numNodes graph
+    (b, t) 
+      = runState (primS graph $ const (const ((get >>=) . (put .) . (+)))) 0
+
+-- A State that simulates Prim's Algorithm.
+-- This function is convoluted and is not necessary unless you need to do custom
+-- actions during the formation of the spanning tree.
+-- See full documentation in README.md. (TODO)
+-- Pre: The graph is undirected.
+primS :: (Graph a, Flaggable l) 
+  => a 
+  -> (Int -> Int -> Int -> State b l) 
+  -> State b (Terminate ())
+primS graph fun 
+  | sz == 0   = continueLoop
+  | otherwise = do
+  t <- get
+  let (b, ((k, _), res)) = runState prim' ((fromDescList [root], initAdj), t)
+  put res
+  breakUpon (sz > size k)
+  where
+    sz      = numNodes graph
+    root    = head $ nodes graph
+    initAdj = execState (forM_ (neighbours root graph) $ \s -> do
       fringe <- get
       put $ IM.insert s (fromJust (weight (root, s) graph), root) fringe
       ) empty
-    ((k, _), t) = execState (loop_ $ do
-      ((k, f), t) <- get
-      breakWhen (null f) $ do
-        let minN = minimumBy ((. (f !)) . compare . (f !)) (keys f)
-        let minA = let (w, n) = f ! minN in ((n, minN), w)
-        let adj  = neighbours minN graph
-        let k'   = S.insert minN k
-        put ((k', execState (breakWhen (size k' == sz) $ forM_ adj $ \s -> do
-          fringe <- get
-          let newW = fromJust $ weight (minN, s) graph
-          let new  = (newW, minN)
-          continueWhen (S.member s k') $ if IM.notMember s fringe
-            then put $ IM.insert s (newW, minN) fringe
-            else do
-              put $ IM.insert s (min (fringe ! s) new) fringe
-          ) $ delete minN f), addUWArcs [minA] t)
-      ) ((fromDescList [root], initAdj), initUGraph (nodes graph) [])
+    prim'   = forMBreak_ [2..sz] $ \_ -> do
+    ((k, f), t) <- get
+    breakWhen (null f) $ do
+      let minN     = minimumBy ((. (f !)) . compare . (f !)) (keys f)
+      let (w, n)   = f ! minN
+      let adj      = neighbours minN graph
+      let k'       = S.insert minN k
+      let (b', t') = runState (fun n minN w) t
+      runUnlessBreak b' $ put ((k', execState (forM_ adj $ \s -> do
+        fringe <- get
+        let newW = fromJust $ weight (minN, s) graph
+        continueWhen (S.member s k') $ if IM.notMember s fringe
+          then put $ IM.insert s (newW, minN) fringe
+          else put $ IM.insert s (min (fringe ! s) (newW, minN)) fringe
+        ) $ delete minN f), t')

@@ -233,3 +233,35 @@ wg2
    ((5, 6), 9), ((5, 7), 8), ((6, 7), 7), ((6, 9), 4), ((6, 10), 5),
    ((7, 8), 10), ((7, 10), 9), ((8, 9), 4), ((8, 10), 3), ((9, 10), 1)
   ]
+
+-- Fiding Minimum Spanning Trees using Prim's Algorithm:
+  -- primMST wg1
+    -- Just Nodes:
+    -- [1,2,3,4]
+    -- Adjacency List:
+    -- 1: [2: 3, 3: 4]
+    -- 2: [1: 3]
+    -- 3: [1: 4, 4: 1]
+    -- 4: [3: 1]
+  -- primMST wg2
+    -- Just Nodes:
+    -- [1,2,3,4,5,6,7,8,9,10]
+    -- Adjacency List:
+    -- 1: [2: 3]
+    -- 2: [1: 3, 5: 2]
+    -- 3: [5: 2]
+    -- 4: [7: 8]
+    -- 5: [2: 2, 3: 2, 7: 8]
+    -- 6: [7: 7, 9: 4]
+    -- 7: [4: 8, 5: 8, 6: 7]
+    -- 8: [10: 3]
+    -- 9: [6: 4, 10: 1]
+    -- 10: [8: 3, 9: 1]
+-- We can also calculate the total weight of the spanning tree:
+  -- primMSTWeights wg1
+    -- Just 8
+  -- primMSTWeights wg2
+    -- Just 38
+-- If the graph is not connected, returns Nothing
+  -- primMST k3t2
+    -- Nothing
