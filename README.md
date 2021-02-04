@@ -10,13 +10,13 @@ These should be available in default GHC. If not, install the hackage `container
 <br />
 
 # Contents   
-## 1. [Graph.hs](#[Graph.hs](./Graph.hs))  
+## 1. [Graph.hs](#graphhs)  
 
-## 2. [Search.hs](#[Search.hs](./Search.hs))  
+## 2. [Search.hs](#searchhs)  
 
-## 3. [SpanningTree.hs](#[SpanningTree.hs](./SpanningTree.hs))  
+## 3. [SpanningTree.hs](#spanningtreehs)  
 
-## 4. [Utilities.hs](#[Utilities.hs](./Utilities.hs))  
+## 4. [Utilities.hs](#utilitieshs)  
 <br />
 
 # [Graph.hs](./Graph.hs)
