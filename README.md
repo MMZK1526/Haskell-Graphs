@@ -24,37 +24,47 @@ Provides basic access/modification methods.
     * An empty graph with zero nodes and arcs.  
 
   * `initGraph :: [Int] -> [(Int, Int)] -> a`  
-    * Initialises a directed graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
+    * Initialises a **directed** graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
     * **Argument 1 `Int`:**  
       * The list of nodes.  
     * **Argument 2 `[(Int, Int)]`:**  
       * The list of arcs specified by the pairs of nodes.  
     * **Result:**
       * A directed graph that contains the given nodes and arcs.  
-    * Pre: the nodes in the arc list are in node list.  
+    * Pre: The nodes in the arc list are in node list.  
   
   * `initUGraph :: [Int] -> [(Int, Int)] -> a`  
-    * Initialises an undirected graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
+    * Initialises an **undirected** graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
     * **Argument 1 `Int`:**  
       * The list of nodes.  
     * **Argument 2 `[(Int, Int)]`:**  
       * The list of arcs specified by the pairs of nodes.  
     * **Result:**  
       * An undirected graph that contains the given nodes and arcs.  
-    * Pre: the nodes in the arc list are in node list.  
+    * Pre: The nodes in the arc list are in node list.  
 
   * `initWGraph :: [Int] -> [((Int, Int), Int)] -> a`  
-    * Initialises an integer-weighted (will be refered as simply 'weighted' for convenience) directed graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
+    * Initialises an integer-weighted (will be refered as simply 'weighted' for convenience) **directed** graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
     * **Argument 1 `Int`:**  
       * The list of nodes.  
     * **Argument 2 `[((Int, Int), Int)]`:**  
       * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
     * **Result:**  
       * An weighted directed graph that contains the given nodes, arcs, and weights.  
-    * Pre: the nodes in the arc list are in node list.  
+    * Pre: The nodes in the arc list are in node list.  
+
+  * `initUWGraph :: [Int] -> [((Int, Int), Int)] -> a`  
+    * Initialises an integer-weighted **undirected** graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
+    * **Argument 1 `Int`:**  
+      * The list of nodes.  
+    * **Argument 2 `[((Int, Int), Int)]`:**  
+      * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
+    * **Result:**  
+      * An weighted undirected graph that contains the given nodes, arcs, and weights.  
+    * Pre: The nodes in the arc list are in node list.  
 
   * `addArcs :: [(Int, Int)] -> a -> a`  
-    * Adds the directed arcs specified by the list of pairs in the first argument;  
+    * Adds the **directed** arcs specified by the list of pairs in the first argument;  
     * If the graph is weighted, then add the weight of the referred arcs by 1;  
     * **Argument 1 `[(Int, Int)]`:**  
       * The list of arcs specified by the pairs of nodes.  
@@ -62,10 +72,10 @@ Provides basic access/modification methods.
       * The directed graph to be modified.  
     * **Result:**  
       * A new directed graph that contains the original graph as well as the new arcs.  
-    * Pre: the node in the arc list are in the graph.   
+    * Pre: The node in the arc list are in the graph.   
 
   * `addUArcs :: [(Int, Int)] -> a -> a`  
-    * Adds the undirected arcs specified by the list of pairs in the first argument;  
+    * Adds the **undirected** arcs specified by the list of pairs in the first argument;  
     * If the graph is weighted, then add the weight of the referred arcs by 1.  
     * **Argument 1 `[(Int, Int)]`:**  
       * The list of arcs specified by the pairs of nodes.  
@@ -73,10 +83,10 @@ Provides basic access/modification methods.
       * The undirected graph to be modified.  
     * **Result:**  
       * A new undirected graph that contains the original graph as well as the new arcs.  
-    * Pre: the node in the arc list are in the graph.  
+    * Pre: The node in the arc list are in the graph.  
 
   * `addWArcs :: [((Int, Int), Int)] -> a -> a`  
-    * Adds the directed weighted arcs specified by the list of pairs in the first argument;  
+    * Adds the **directed** weighted arcs specified by the list of pairs in the first argument;  
     * Note that an arc can have a weight of zero.  
     * **Argument 1 `[((Int, Int), Int)]`:**  
       * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
@@ -84,7 +94,18 @@ Provides basic access/modification methods.
       * The weighted graph to be modified.  
     * **Result:**  
       * A new weighted graph that contains the original graph as well as the new arcs.  
-    * Pre: the node in the arc list are in the graph.  
+    * Pre: The node in the arc list are in the graph.  
+
+  * `addUWArcs :: [((Int, Int), Int)] -> a -> a`  
+    * Adds the **undirected** weighted arcs specified by the list of pairs in the first argument;  
+    * Note that an arc can have a weight of zero.  
+    * **Argument 1 `[((Int, Int), Int)]`:**  
+      * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
+    * **Argument 2 `a`:**  
+      * The weighted graph to be modified.  
+    * **Result:**  
+      * A new weighted undirected graph that contains the original graph as well as the new arcs.  
+    * Pre: The node in the arc list are in the graph.  
 
   * `addNodes :: [Int] -> a -> a`  
     * Adds the nodes indicated by the list to the graph, ignoring duplicates.  
@@ -104,7 +125,7 @@ Provides basic access/modification methods.
       * The directed graph to be modified.  
     * **Result:**  
       * A new directed graph that removes the given arcs from the original graph.  
-    * Pre: the node in the arc list are in the graph.  
+    * Pre: The node in the arc list are in the graph.  
 
   * `removeUArcs :: [(Int, Int)] -> a -> a`  
     * Removes the undirected arcs specified by the list of pairs in the first argument;  
@@ -115,9 +136,9 @@ Provides basic access/modification methods.
       * The graph to be modified.  
     * **Result:**  
       * A new graph that removes the given arcs from the original graph.  
-    * Pre: the node in the arc list are in the graph.  
+    * Pre: The node in the arc list are in the graph.  
 
- * `removeNodes :: [Int] -> a -> a`  
+  * `removeNodes :: [Int] -> a -> a`  
     * Removes the nodes indicated by the list to the graph, ignoring duplicates.  
     * **Argument 1 `[Int]`:**  
       * The list of nodes.  
@@ -126,82 +147,96 @@ Provides basic access/modification methods.
     * **Result:**  
      * A new graph that removes the given nodes from the original graph.  
 
-* `weight :: (Int, Int) -> a -> Maybe Int`
-  * Returns the weight of the given arc, wrapped in a `Just`;  
-  * If the arc does not exist, then Nothing;  
-    * **Argument 1 `[(Int, Int)]`:**  
-      * The list of arcs specified by the pairs of nodes.  
+  * `weight :: (Int, Int) -> a -> Maybe Int`
+    * Returns the weight of the given arc, wrapped in a `Just`;  
+    * If the arc does not exist, then Nothing;  
+      * **Argument 1 `[(Int, Int)]`:**  
+        * The list of arcs specified by the pairs of nodes.  
+      * **Argument 2 `a`:**  
+        * The weighted graph.  
+      * **Result:**  
+        * The weight of the given arc.  
+
+  * `setWeights :: [((Int, Int), Int)] -> a -> a`
+    * Sets the weights of the given arcs.  
+    * **Argument 1 `[((Int, Int), Int)]`:**  
+      * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
     * **Argument 2 `a`:**  
       * The weighted graph.  
     * **Result:**  
-      * The weight of the given arc.  
+      * A new weighted graph that sets the weight of the given arcs to the given values from the original graph.  
+    * Pre: The node in the arc list are in the graph.  
 
-* `setWeights :: [((Int, Int), Int)] -> a -> a`
-  * Sets the weights of the given arcs.  
-  * **Argument 1 `[((Int, Int), Int)]`:**  
-    * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
-  * **Argument 2 `a`:**  
-    * The weighted graph.  
-  * **Result:**  
-    * A new weighted graph that sets the weight of the given arcs to the given values from the original graph.  
-  * Pre: the node in the arc list are in the graph.  
+  * `simplify :: a -> a`
+    * Convert a graph to a simple unweighted graph by removing all loops and parallels.  
+    * **Argument 1:**  
+      * The graph to be converted.  
+    * **Result:**  
+      * The corresponding simple graph.  
 
-* `simplify :: a -> a`
-  * Convert a graph to a simple unweighted graph by removing all loops and parallels.  
-  * **Argument 1:**  
-    * The graph to be converted.  
-  * **Result:**  
-    * The corresponding simple graph.  
+  * `disconnect :: Int -> a -> a`  
+    * Remove all arcs that originate from or lead to a specified node.  
+    * **Argument 1 `Int`:**  
+      * The node to be disconnected.  
+    * **Argument 2 `a`:**  
+      * The graph to be modified.  
+    * **Result:**  
+      * The original graph without any arcs relating to the given node.  
 
-* `disconnect :: Int -> a -> a`  
-  * Remove all arcs that originate from or lead to a specified node.  
-  * **Argument 1 `Int`:**  
-    * The node to be disconnected.  
-  * **Argument 2 `a`:**  
-    * The graph to be modified.  
-  * **Result:**  
-    * The original graph without any arcs relating to the given node.  
+  * `nodes :: a -> [Int]`  
+    * **Argument 1:**  
+      * The graph.  
+    * **Result:**  
+      * The list of nodes in the graph.  
 
-* `nodes :: a -> [Int]`  
-  * **Argument 1:**  
-    * The graph.  
-  * **Result:**  
-    * The list of nodes in the graph.  
+  * `numNodes :: a -> [Int]`  
+    * **Argument 1:**  
+      * The graph.  
+    * **Result:**  
+      * The number of nodes in the graph.  
 
-* `numNodes :: a -> [Int]`  
-  * **Argument 1:**  
-    * The graph.  
-  * **Result:**  
-    * The number of nodes in the graph.  
+  *  `wArcs :: a -> [((Int, Int), Int)]`
+    * **Argument 1:**  
+      * The graph.  
+    * **Result:**  
+      * The list of **directed** arcs in the graph.  
+    * Pre: The graph is directed.  
 
-* `inDegree :: Int -> a -> Int`  
-  * **Argument 1 `Int`:**  
-    * The node.  
-  * **Argument 2 `a`:**  
-    * The graph.  
-  * **Result:**  
-    * The indegree of the node.  
-  * Pre: the node is in the graph.  
+  *  `uArcs :: a -> [((Int, Int), Int)]`
+    * **Argument 1:**  
+      * The graph.  
+    * **Result:**  
+      * The list of **undirected** arcs in the graph.  
+    * Pre: The graph is undirected.  
 
-* `outDegree :: Int -> a -> Int`  
-  * **Argument 1 `Int`:**  
-    * The node.  
-  * **Argument 2 `a`:**  
-    * The graph.  
-  * **Result:**  
-    * The outdegree of the node.  
-  * Pre: the node is in the graph.  
+  * `inDegree :: Int -> a -> Int`  
+    * **Argument 1 `Int`:**  
+      * The node.  
+    * **Argument 2 `a`:**  
+      * The graph.  
+    * **Result:**  
+      * The indegree of the node.  
+    * Pre: The node is in the graph.  
 
-* `degree :: Int -> a -> Int`  
-  * Returns the degree of a node in an unweighted graph;
-  * Loops are counted twice.  
-  * **Argument 1 `Int`:**  
-    * The node.  
-  * **Argument 2 `a`:**  
-    * The graph.  
-  * **Result:**  
-    * The outdegree of the node.  
-  * Pre: the node is in the graph and the graph is unweighted.  
+  * `outDegree :: Int -> a -> Int`  
+    * **Argument 1 `Int`:**  
+      * The node.  
+    * **Argument 2 `a`:**  
+      * The graph.  
+    * **Result:**  
+      * The outdegree of the node.  
+    * Pre: The node is in the graph.  
+
+  * `degree :: Int -> a -> Int`  
+    * Returns the degree of a node in an unweighted graph;
+    * Loops are counted twice.  
+    * **Argument 1 `Int`:**  
+      * The node.  
+    * **Argument 2 `a`:**  
+      * The graph.  
+    * **Result:**  
+      * The outdegree of the node.  
+    * Pre: The node is in the graph and the graph is unweighted.  
 
   * `neighbours :: Int -> a -> [Int]`
   * Returns the list of nodes that connects from the given node.  
@@ -212,7 +247,7 @@ Provides basic access/modification methods.
     * The graph.  
   * **Result:**  
     * The list of adjacent nodes from the given node.  
-  * Pre: the node is in the graph.  
+  * Pre: The node is in the graph.  
 
 * `data GraphList`  
   * Represents unweighted graphs/simple integer-weighted graphs in the form of Adjacency List.  
@@ -310,12 +345,12 @@ Conducts topological sort on directed acylic graphs (DAG).
     * If no such path exists, then Nothing.  
   * Pre: The given nodes are in the graph.  
 
-* `depthFirstS :: Graph a => Int -> a -> Bool -> (Int -> State b (Terminate c)) -> (Int -> State b (Terminate d)) -> State ((Set Int, Set Int), b) (Terminate ())`  
+* `depthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
   * A State that simulates Depth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search.  
   * The polymorphic type `a` represents the graph.  
-  * The polymorphic type `b` represents the information produced by the search, e.g. a spanning tree or a list of nodes in some specific order;  
-  * The polymorphic types `c` and `d` can be anything.  
+  * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
+  * The polymorphic types `l1` and `l2` represent instances of `Flaggable` (see the secion **Utilities.hs** for clarification).  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
@@ -324,63 +359,157 @@ Conducts topological sort on directed acylic graphs (DAG).
     * If `False`, then the search will terminate when a cycle is encountered;  
     * If `True`, then the search will continue when a cycle is encountered;  
     * Note that here an undirected arc is considered as a cycle as well.  
-  * **Argument 4 `Int -> State b (Terminate c)`:**  
+  * **Argument 4 `Int -> State b l1`:**  
     * This function will be called whenever the search passes a new node for the FIRST time.  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information and returns a `Terminate`;  
-      * If it terminates (ends in `breakLoop`), then the search will terminate;  
-      * Otherwise (ends in `continueLoop`), the search will continue;  
+      * A State that updates the information and returns a `Flaggable`;  
+      * If it terminates (*e.g.* ends in `breakLoop`), then the search will terminate;  
+      * Otherwise (*e.g.* ends in `continueLoop`), the search will continue;  
       * Termination is used in the occasion where it is OK to end the search prematurely.  
-  * **Argument 5 `(Int -> State b (Terminate d))`:**  
+  * **Argument 5 `Int -> State b l2`:**  
     * This function will be called whenever the search passes a new node for the LAST time.  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information, wrapped in a `Terminate`;  
-      * If it terminates (ends in `breakLoop`), then the search will terminate;  
-      * Otherwise (ends in `continueLoop`), the search will continue;  
+      * A State that updates the information and returns a `Flaggable`;  
+      * If it terminates (*e.g.* ends in `breakLoop`), then the search will terminate;  
+      * Otherwise (*e.g.* ends in `continueLoop`), the search will continue.  
   * **Result:**  
     * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
     * To make a valid search, the initial state should be in the form of `((empty, empty), info)`, where empty is the empty Set.  
   * Pre: The given node is in the graph.  
 
-* `breadthFirstS :: Graph a => Int -> a -> (Int -> State b (Terminate c)) -> (Int -> State b (Terminate d)) -> State ((Set Int, Set Int), b) (Terminate ())`  
+* `breadthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
   * A State that simulates Breadth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search.  
+  * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
   * The polymorphic type `a` represents the graph.  
-  * The polymorphic type `b` represents the information produced by the search, e.g. a spanning tree or a list of nodes in some specific order.  
-  * The polymorphic types `c` and `d` can be anything.  
+  * The polymorphic types `l1` and `l2` represent instances of `Flaggable`.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
     * The graph.  
-  * **Argument 3 `Int -> State b (Terminate c)`:**  
+  * **Argument 3 `Int -> State b l2`:**  
     * This function will be called whenever the search passes a new node for the FIRST time (when the node is added to the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information and returns a `Terminate`;  
-      * If it terminates (ends in `breakLoop`), then the search will terminate;  
-      * Otherwise (ends in `continueLoop`), the search will continue;  
-  * **Argument 4 `Int -> State b (Terminate d)`:**  
+      * A State that updates the information and returns a `Flaggable`;  
+      * If it terminates, then the search will terminate;  
+      * Otherwise, the search will continue;  
+      * Termination is used in the occasion where it is OK to end the search prematurely.  
+  * **Argument 4 `Int -> State b l2`:**  
     * This function will be called whenever the search passes a new node for the LAST time (when the node is popped from the frontier).  
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information and returns a `Terminate`;  
-      * If it terminates (ends in `breakLoop`), then the search will terminate;  
-      * Otherwise (ends in `continueLoop`), the search will continue;  
+      * A State that updates the information and returns a `Flaggable`;  
+      * If it terminates, then the search will terminate;  
+      * Otherwise, the search will continue.  
   * **Result:**  
     * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
     * To make a valid search, the initial state should be in the form of `((Data.Set.empty, Data.Sequence.empty), info)`.  
   * Pre: The given node is in the graph.  
 
+# SpanningTree.hs  
+Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kruskal's Algorithm.  
+
+* `primMST :: Graph a => a -> Maybe a`  
+  * Generates the Minimum Spanning Tree via Prim's Algorithm;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1:**  
+    * The graph.  
+  * **Result:**  
+    * The Minimum Spanning Tree wrapped in a `Just` if existed;  
+    * If the graph is disconnected, then `Nothing`.  
+  * Pre: The graph is undirected.  
+
+* `primMSTWeights :: Graph a => a -> Maybe Int`  
+  * Returns the total weight of the Minimum Spanning Tree via Prim's Algorithm;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1:**  
+    * The graph.  
+  * **Result:**  
+    * The Minimum Spanning Tree's total weight wrapped in a `Just` if existed;  
+    * If the graph is disconnected, then `Nothing`.  
+  * Pre: The graph is undirected.  
+
+* `kruskalMST :: Graph a => a -> Maybe a`  
+  * Generates the Minimum Spanning Tree via Kruskal's Algorithm;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1:**  
+    * The graph.  
+  * **Result:**  
+    * The Minimum Spanning Tree wrapped in a `Just` if existed;  
+    * If the graph is disconnected, then `Nothing`.  
+  * Pre: The graph is undirected.  
+
+* `kruskalMSTWeights :: Graph a => a -> Maybe Int`  
+  * Returns the total weight of the Minimum Spanning Tree via Kruskal's Algorithm;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1:**  
+    * The graph.  
+  * **Result:**  
+    * The Minimum Spanning Tree's total weight wrapped in a `Just` if existed;  
+    * If the graph is disconnected, then `Nothing`.  
+  * Pre: The graph is undirected.  
+
+* `primS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
+  * A State that simulates Prim's Algorithm;  
+  * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the spanning tree;  
+  * The polymorphic type `a` represents the graph;  
+  * The polymorphic type `b` represents the information produced by the search, *e.g.* the spanning tree itself or the total weight of the tree.  
+  * The polymorphic type `l` represents an instance of `Flaggable`.  
+  * **Argument 1 `a`:**  
+    * The graph.  
+  * **Argument 2: `Int -> Int -> Int -> State b l`**
+    * This function will be called whenever the algorithm finds a new arc for the Minimum Spanning Tree.  
+      * *Argument 1 `Int`:*  
+        * One of the end of the newly discovered arc.  
+      * *Argument 2 `Int`:*  
+        * The other end of the newly discovered arc.  
+      * *Argument 3 `Int`:*  
+        * The weight the newly discovered arc.  
+      * *Result:*  
+        * A State that updates the information and returns a `Flaggable`;  
+        * If it terminates, then the algorithm will terminate;  
+        * Otherwise, the algorithm will continue;  
+  * **Result:**  
+    * A state that stores the information and returns an instance of type `Terminate ()`;
+    * If the output indicates `break`, then the algorithm ends prematurely, either because Argument 2 kills the process, or because the graph is not connected and thus a spanning tree is impossible.  
+  * Pre: The graph is undirected.  
+
+* `kruskalS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
+  * A State that simulates Kruskal's Algorithm;  
+  * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the spanning tree;  
+  * The polymorphic type `a` represents the graph;  
+  * The polymorphic type `b` represents the information produced by the search.  
+  * The polymorphic type `l` represents an instance of `Flaggable`.  
+  * **Argument 1 `a`:**  
+    * The graph.  
+  * **Argument 2: `Int -> Int -> Int -> State b l`**
+    * This function will be called whenever the algorithm finds a new arc for the Minimum Spanning Tree.  
+      * *Argument 1 `Int`:*  
+        * One of the end of the newly discovered arc.  
+      * *Argument 2 `Int`:*  
+        * The other end of the newly discovered arc.  
+      * *Argument 3 `Int`:*  
+        * The weight the newly discovered arc.  
+      * *Result:*  
+        * A State that updates the information and returns a `Flaggable`;  
+        * If it terminates, then the algorithm will terminate;  
+        * Otherwise, the algorithm will continue;  
+  * **Result:**  
+    * A state that stores the information and returns an instance of type `Terminate ()`;
+    * If the output indicates `break`, then the algorithm ends prematurely.  
+  * Pre: The graph is undirected.  
+
 # Utilities.hs
 Contains helper functions for the rest of the program, especially monad-related.  
 
-In the higher-order functions for Depth-First and Breadth-First Searches, the algorithms may halt the search based on a given condition (e.g. when a cycle is detected), in this case we would like a mechanism that simulates `break` in imperative languages such as `C`.  
+In the higher-order functions for Depth-First and Breadth-First Searches, the algorithms may halt the search based on a given condition (*e.g.* when a cycle is detected), in this case we would like a mechanism that simulates `break` in imperative languages such as `C`.  
 A natural way of doing so is to wrap the information in an `Either`.  
 
 The following example shows how this works:  
@@ -474,7 +603,7 @@ foo n
     * A new flag that has the same state of breaking devoid of any information.  
 
 * `breakUpon :: Monad m => Bool -> m (Terminate ())`
-  * Breaks the loop (i.e. produces `breakLoop`) if the predicate is true, otherwise continue the loop;  
+  * Breaks the loop (*i.e.* produces `breakLoop`) if the predicate is true, otherwise continue the loop;  
   * The polymorphic type `m` represents any monad.  
   * **Argument 1:**  
     * The predicate.  
@@ -483,33 +612,33 @@ foo n
 
 * `continueWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())`
   * The polymorphic type `m` represents any monad;  
-  * The polymorphic type `l` represents instance of `Flaggable`, i.e. any type.  
+  * The polymorphic type `l` represents an instance of `Flaggable`, i*i.e.* any type.  
   * **Argument 1 `Bool`:**  
     * The predicate.  
   * **Argument 2 `m l`:**  
-    A monadic action that returns a `Flaggable`.  
+    * A monadic action that returns a `Flaggable`.  
   * **Result:**  
     * If the predicate is `True`, produces `continueLoop`;  
     * If the predicate is `False`, runs the monadic action.  
 
 * `breakWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())`
   * The polymorphic type `m` represents any monad;  
-  * The polymorphic type `l` represents instance of `Flaggable`, i.e. any type.  
+  * The polymorphic type `l` represents an instance of `Flaggable`, *i.e.* any type.  
   * **Argument 1 `Bool`:**  
     * The predicate.  
   * **Argument 2 `m l`:**  
-    A monadic action that returns a `Flaggable`.  
+    * A monadic action that returns a `Flaggable`.  
   * **Result:**  
     * If the predicate is `True`, produces `breakLoop`;  
     * If the predicate is `False`, runs the monadic action.  
 
 * `runUnlessBreak :: (Monad m, Flaggable l1, Flaggable l2) => l1 -> m l2 -> m (Terminate ())`
   * The polymorphic type `m` represents any monad;  
-  * The polymorphic types `l1` and `l2` represents instance of `Flaggable`.  
+  * The polymorphic types `l1` and `l2` represent instances of `Flaggable`.  
   * **Argument 1 `l1`:**  
     * A `Flaggable` that indicates if the next argument is to be run.  
   * **Argument 2 `m l`:**  
-    A monadic action.  
+    * A monadic action.  
   * **Result:**  
     * If the `Flaggable` indicates break, produces `breakLoop`;  
     * Otherwise the function runs the monadic action;  
@@ -520,20 +649,33 @@ foo n
   * Whenever the monadic action returns a break flag, the function immediately terminates itself and produces `breakLoop`;  
   * If all elements of the `Foldable` are succesfully applied, the function produces `continueLoop`;  
   * The polymorphic type `m` represents any monad;  
-  * The polymorphic type `l` represents instance of `Flaggable`.  
+  * The polymorphic type `l` represents an instance of `Flaggable`.  
   * **Argument 1 `f a`:**  
     * A `Foldable` that contains the elements to be applied to the following monadic action.  
   * **Argument 2 `m l`:**  
-    A monadic action.  
+    * A monadic action.  
   * **Result:**  
     * A new monadic action formed by iterating Argument 2, and it produces a flag based on if Argument 1 is fully iterated.  
 
 * `loop_ :: (Monad m, Flaggable l) => m l -> m (Terminate ())`  
-  * Iterates a monadic action indefinitely until the action returns a break flag;  
+  * Iterates an argumentless monadic action indefinitely until the action returns a break flag;  
   * The polymorphic type `m` represents any monad;  
-  * The polymorphic type `l` represents instance of `Flaggable`.  
+  * The polymorphic type `l` represents an instance of `Flaggable`.  
   * **Argument 1:** 
-    A monadic action.  
+    * A monadic action.  
   * **Result:**  
     * A new monadic action formed by iterating the argument until break;  
     * If the function terminates, then it always produces `breakLoop` since it only terminates from a break flag.  
+
+* `loop :: Monad m => a -> (a -> m (Terminate a)) -> m (Terminate a)`  
+  * Iterates a monadic action that takes one aggument indefinitely until the action returns a break flag;  
+  * The polymorphic type `a` represents any type;  
+  * The polymorphic type `m` represents any monad;  
+  * The polymorphic type `l` represents an instance of `Flaggable`.  
+  * **Argument 1 `a`:**  
+    * The initial value.  
+  * **Argument 2 `a -> m (Terminate a)`:**  
+    * A monadic action.  
+  * **Result:**  
+    * A new monadic action formed by iterating the second argument until break;  
+    * If the function terminates, then it always produces a result wrapped in `Terminate` that represents break.  
