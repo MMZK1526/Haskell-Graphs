@@ -1,4 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TupleSections #-}
 
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
@@ -20,7 +21,8 @@ import           Data.IntMap.Lazy
   (IntMap(..), adjust, delete, fromAscList, insert, keys, map, mapWithKey
   , member, notMember, (!), (!?)
   )
-import           Data.Sequence hiding (adjust, length, lookup, null, zip, (!?))
+import           Data.Sequence hiding 
+  (adjust, filter, length, lookup, null, zip, (!?))
 
 
 -- Test graphs
@@ -122,6 +124,14 @@ class Graph a where
   -- Returns the number of nodes.
   numNodes :: a -> Int
   numNodes = length . nodes
+
+  -- Returns the list of all arcs with weights of a directed graph.
+  -- Pre: The graph is directed
+  wArcs :: a -> [((Int, Int), Int)]
+
+  -- Returns the list of all arcs with weights of an undirected graph.
+  -- Pre: The graph is undirected
+  uArcs :: a -> [((Int, Int), Int)]
 
   -- The indegree of a node in a directed graph (weighted).
   -- Pre: the node is in the graph.
@@ -254,6 +264,15 @@ instance Graph GraphList where
 
   numNodes :: GraphList -> Int
   numNodes = nodeNumL
+
+  wArcs :: GraphList -> [((Int, Int), Int)]
+  wArcs (LGraph _ list) = do
+    n <- keys list
+    let entry = list ! n
+    (liftM2 (,) (n ,) (entry !)) <$> keys entry
+
+  uArcs:: GraphList -> [((Int, Int), Int)]
+  uArcs = filter (\((a, b), _) -> a <= b) . wArcs
 
   inDegree :: Int -> GraphList -> Int
   inDegree = (sum .) . (. nodeList) . fmap . (maybe 0 id .) . flip (!?)

@@ -7,9 +7,13 @@ module Utilities where
 import           Control.Applicative
 import           Control.Monad.Trans.State
 import           Data.Either (Either(..), isLeft, isRight)
-import           Data.Foldable (toList)
+import           Data.Foldable (forM_, toList)
 import           Data.Maybe (isNothing)
 
+-- May require installation
+import           Data.IntMap.Lazy as IM 
+  (IntMap(..), delete, insert, update, (!))
+import           Data.Set as S (Set(..), size, union)
 
 --------------------------------------------------------------------------------
 -- Loop Break Controls
@@ -116,6 +120,43 @@ loop i f = do
   if isBreaking b
     then return b
     else loop (information b) f
+
+
+--------------------------------------------------------------------------------
+-- Data Types
+--------------------------------------------------------------------------------
+
+-- Union Find
+-- Contains a number of equivalence classes, each signified by a representative,
+-- and we can merge two equivalence classes together as well as check the
+-- representative of any given element (Int).
+
+data UnionFind = UF (IntMap Int) (IntMap (Set Int))
+  deriving (Show)
+
+-- Find the representative of an element.
+-- Pre: the element is in one of the equivalence classes.
+getRep :: Int -> UnionFind -> Int
+getRep e (UF im _)
+  = im ! e
+
+-- Take union of two equivalence classes, choosing one of the representatives
+-- as the new representative.
+-- Pre: the elements are representatives.
+unionFind :: Int -> Int -> UnionFind -> UnionFind
+unionFind i j (UF im sets)
+  = UF im' $ sets'
+  where
+    si = sets ! i
+    sj = sets ! j
+    replace s r 
+      = forM_ s $ \e -> get >>= put . insert e r
+    im' 
+      | size si < size sj = execState (replace si j) im
+      | otherwise         = execState (replace sj i) im
+    sets'
+      | size si < size sj = insert j (union si sj) (delete i sets)
+      | otherwise         = insert i (union si sj) (delete j sets)
 
 
 --------------------------------------------------------------------------------
