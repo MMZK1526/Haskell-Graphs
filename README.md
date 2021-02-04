@@ -2,13 +2,24 @@
 Implements graph-related algorithms in `Haskell`.  
 Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms.
 (Just starting, I'll add algorithms as the course goes on)  
-For a quick guide on the algorithms, check out Example.hs.  
+For a quick guide on the algorithms, check out [Examples.hs](./Examples.hs).  
 For full documentation of the functions, see below.  
 
 Dependencies: `Data.IntMap`, `Data.Sequence`, `Data.Set`.  
 These should be available in default GHC. If not, install the hackage `containers`.  
+<br />
 
-# Graph.hs
+# Contents   
+## 1. [Graph.hs](#Graph.hs)  
+
+## 2. [Search.hs](#Search.hs)  
+
+## 3. [SpanningTree.hs](#SpanningTree.hs)  
+
+## 4. [Utilities.hs](#Utilities.hs)  
+<br />
+
+# [Graph.hs](./Graph.hs)
 Implements graphs using Adjacency List;  
 Provides basic access/modification methods.  
   
@@ -252,8 +263,12 @@ Provides basic access/modification methods.
 * `data GraphList`  
   * Represents unweighted graphs/simple integer-weighted graphs in the form of Adjacency List.  
   * Can be printed out and can compare for equality (Equality in the sense of the identity isomorphism instead of homomorphism in general, as the latter is potentially an NP Prolbem).  
+<br />  
 
-# Search.hs
+## [Back to Title](#Haskell-Graphs)  
+<br />
+
+# [Search.hs](./Search.hs)
 Implements Depth-First Search & Breadth-First Search;  
 Generates spanning trees and computes depth of each node given the root;  
 Checks connectivity of graphs;  
@@ -412,8 +427,12 @@ Conducts topological sort on directed acylic graphs (DAG).
     * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
     * To make a valid search, the initial state should be in the form of `((Data.Set.empty, Data.Sequence.empty), info)`.  
   * Pre: The given node is in the graph.  
+<br />  
 
-# SpanningTree.hs  
+## [Back to Title](#Haskell-Graphs)  
+<br />
+
+# [SpanningTree.hs](./SpanningTree.hs)  
 Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kruskal's Algorithm.  
 
 * `primMST :: Graph a => a -> Maybe a`  
@@ -466,16 +485,16 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
     * The graph.  
   * **Argument 2: `Int -> Int -> Int -> State b l`**
     * This function will be called whenever the algorithm finds a new arc for the Minimum Spanning Tree.  
-      * *Argument 1 `Int`:*  
-        * One of the end of the newly discovered arc.  
-      * *Argument 2 `Int`:*  
-        * The other end of the newly discovered arc.  
-      * *Argument 3 `Int`:*  
-        * The weight the newly discovered arc.  
-      * *Result:*  
-        * A State that updates the information and returns a `Flaggable`;  
-        * If it terminates, then the algorithm will terminate;  
-        * Otherwise, the algorithm will continue;  
+    * *Argument 1 `Int`:*  
+      * One of the end of the newly discovered arc.  
+    * *Argument 2 `Int`:*  
+      * The other end of the newly discovered arc.  
+    * *Argument 3 `Int`:*  
+      * The weight the newly discovered arc.  
+    * *Result:*  
+      * A State that updates the information and returns a `Flaggable`;  
+      * If it terminates, then the algorithm will terminate;  
+      * Otherwise, the algorithm will continue;  
   * **Result:**  
     * A state that stores the information and returns an instance of type `Terminate ()`;
     * If the output indicates `break`, then the algorithm ends prematurely, either because Argument 2 kills the process, or because the graph is not connected and thus a spanning tree is impossible.  
@@ -491,22 +510,26 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
     * The graph.  
   * **Argument 2: `Int -> Int -> Int -> State b l`**
     * This function will be called whenever the algorithm finds a new arc for the Minimum Spanning Tree.  
-      * *Argument 1 `Int`:*  
-        * One of the end of the newly discovered arc.  
-      * *Argument 2 `Int`:*  
-        * The other end of the newly discovered arc.  
-      * *Argument 3 `Int`:*  
-        * The weight the newly discovered arc.  
-      * *Result:*  
-        * A State that updates the information and returns a `Flaggable`;  
-        * If it terminates, then the algorithm will terminate;  
-        * Otherwise, the algorithm will continue;  
+    * *Argument 1 `Int`:*  
+      * One of the end of the newly discovered arc.  
+    * *Argument 2 `Int`:*  
+      * The other end of the newly discovered arc.  
+    * *Argument 3 `Int`:*  
+      * The weight the newly discovered arc.  
+    * *Result:*  
+      * A State that updates the information and returns a `Flaggable`;  
+      * If it terminates, then the algorithm will terminate;  
+      * Otherwise, the algorithm will continue;  
   * **Result:**  
     * A state that stores the information and returns an instance of type `Terminate ()`;
     * If the output indicates `break`, then the algorithm ends prematurely.  
   * Pre: The graph is undirected.  
+<br />  
 
-# Utilities.hs
+## [Back to Title](#Haskell-Graphs)  
+<br />
+
+# [Utilities.hs](./Utilities.hs)
 Contains helper functions for the rest of the program, especially monad-related.  
 
 In the higher-order functions for Depth-First and Breadth-First Searches, the algorithms may halt the search based on a given condition (*e.g.* when a cycle is detected), in this case we would like a mechanism that simulates `break` in imperative languages such as `C`.  
@@ -679,3 +702,8 @@ foo n
   * **Result:**  
     * A new monadic action formed by iterating the second argument until break;  
     * If the function terminates, then it always produces a result wrapped in `Terminate` that represents break.  
+
+<br />  
+
+## [Back to Title](#Haskell-Graphs)  
+<br />
