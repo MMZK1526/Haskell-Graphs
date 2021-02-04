@@ -9,11 +9,12 @@ import           Control.Monad.Trans.State
 import           Data.Either (Either(..), isLeft, isRight)
 import           Data.Foldable (forM_, toList)
 import           Data.Maybe (isNothing)
+import           Prelude hiding (length)
 
 -- May require installation
 import           Data.IntMap.Lazy as IM 
-  (IntMap(..), delete, insert, update, (!))
-import           Data.Set as S (Set(..), size, union)
+  (IntMap(..), delete, empty, insert, update, (!))
+import           Data.Sequence as S (Seq(..), length, singleton, (<|), (><))
 
 --------------------------------------------------------------------------------
 -- Loop Break Controls
@@ -131,8 +132,18 @@ loop i f = do
 -- and we can merge two equivalence classes together as well as check the
 -- representative of any given element (Int).
 
-data UnionFind = UF (IntMap Int) (IntMap (Set Int))
+data UnionFind = UF (IntMap Int) (IntMap (Seq Int))
   deriving (Show)
+
+emptyUF :: UnionFind
+emptyUF = UF IM.empty IM.empty
+
+initUF :: [Int] -> UnionFind
+initUF ns
+  = execState (forM_ ns $ \n -> do
+    UF im ims <- get
+    put $ UF (insert n n im) (insert n (singleton n) ims)
+  ) emptyUF
 
 -- Find the representative of an element.
 -- Pre: the element is in one of the equivalence classes.
@@ -142,21 +153,23 @@ getRep e (UF im _)
 
 -- Take union of two equivalence classes, choosing one of the representatives
 -- as the new representative.
--- Pre: the elements are representatives.
+-- Pre: the elements are in the equivalent classes.
 unionFind :: Int -> Int -> UnionFind -> UnionFind
-unionFind i j (UF im sets)
+unionFind i j uf@(UF im sets)
   = UF im' $ sets'
   where
-    si = sets ! i
-    sj = sets ! j
+    i' = getRep i uf
+    j' = getRep j uf
+    si = sets ! i'
+    sj = sets ! j'
     replace s r 
       = forM_ s $ \e -> get >>= put . insert e r
     im' 
-      | size si < size sj = execState (replace si j) im
-      | otherwise         = execState (replace sj i) im
+      | length si < length sj = execState (replace si j') im
+      | otherwise             = execState (replace sj i') im
     sets'
-      | size si < size sj = insert j (union si sj) (delete i sets)
-      | otherwise         = insert i (union si sj) (delete j sets)
+      | length si < length sj = insert j (si >< sj) (delete i sets)
+      | otherwise             = insert i (si >< sj) (delete j sets)
 
 
 --------------------------------------------------------------------------------
