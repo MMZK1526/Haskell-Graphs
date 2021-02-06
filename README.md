@@ -17,8 +17,8 @@ These should be available in default GHC. If not, install the hackage `container
 ## 3. [SpanningTree.hs](#spanningtreehs)  
 
 ## 4. [Utilities.hs](#utilitieshs)  
-  * ### [Monadic Loop Control](#monadic%20loop%20control)
-  * ### [Union Find](#union%20find)
+  * ### [Monadic Loop Control](#monadic-loop-control)
+  * ### [Union Find](#union-find)  
 <br />
 
 # [Graph.hs](./Graph.hs)
