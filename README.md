@@ -17,6 +17,8 @@ These should be available in default GHC. If not, install the hackage `container
 ## 3. [SpanningTree.hs](#spanningtreehs)  
 
 ## 4. [Utilities.hs](#utilitieshs)  
+  * ### [Monadic Loop Control](#monadic%20loop%20control)
+  * ### [Union Find](#union%20find)
 <br />
 
 # [Graph.hs](./Graph.hs)
@@ -42,7 +44,7 @@ Provides basic access/modification methods.
       * The list of arcs specified by the pairs of nodes.  
     * **Result:**
       * A directed graph that contains the given nodes and arcs.  
-    * Pre: The nodes in the arc list are in node list.  
+    * **Pre:** The nodes in the arc list are in node list.  
   
   * `initUGraph :: [Int] -> [(Int, Int)] -> a`  
     * Initialises an **undirected** graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
@@ -52,7 +54,7 @@ Provides basic access/modification methods.
       * The list of arcs specified by the pairs of nodes.  
     * **Result:**  
       * An undirected graph that contains the given nodes and arcs.  
-    * Pre: The nodes in the arc list are in node list.  
+    * **Pre:** The nodes in the arc list are in node list.  
 
   * `initWGraph :: [Int] -> [((Int, Int), Int)] -> a`  
     * Initialises an integer-weighted (will be refered as simply 'weighted' for convenience) **directed** graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
@@ -62,7 +64,7 @@ Provides basic access/modification methods.
       * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
     * **Result:**  
       * An weighted directed graph that contains the given nodes, arcs, and weights.  
-    * Pre: The nodes in the arc list are in node list.  
+    * **Pre:** The nodes in the arc list are in node list.  
 
   * `initUWGraph :: [Int] -> [((Int, Int), Int)] -> a`  
     * Initialises an integer-weighted **undirected** graph with the nodes from the first argument and the arcs specified by the list of pairs in the second argument.  
@@ -72,7 +74,7 @@ Provides basic access/modification methods.
       * The list of arcs (the inner tuple as the first element of the outer tuple) specified by the pairs of nodes together with there corresponding weights (the integer as the second element of the outer tuple).  
     * **Result:**  
       * An weighted undirected graph that contains the given nodes, arcs, and weights.  
-    * Pre: The nodes in the arc list are in node list.  
+    * **Pre:** The nodes in the arc list are in node list.  
 
   * `addArcs :: [(Int, Int)] -> a -> a`  
     * Adds the **directed** arcs specified by the list of pairs in the first argument;  
@@ -83,7 +85,7 @@ Provides basic access/modification methods.
       * The directed graph to be modified.  
     * **Result:**  
       * A new directed graph that contains the original graph as well as the new arcs.  
-    * Pre: The node in the arc list are in the graph.   
+    * **Pre:** The node in the arc list are in the graph.   
 
   * `addUArcs :: [(Int, Int)] -> a -> a`  
     * Adds the **undirected** arcs specified by the list of pairs in the first argument;  
@@ -94,7 +96,7 @@ Provides basic access/modification methods.
       * The undirected graph to be modified.  
     * **Result:**  
       * A new undirected graph that contains the original graph as well as the new arcs.  
-    * Pre: The node in the arc list are in the graph.  
+    * **Pre:** The node in the arc list are in the graph.  
 
   * `addWArcs :: [((Int, Int), Int)] -> a -> a`  
     * Adds the **directed** weighted arcs specified by the list of pairs in the first argument;  
@@ -105,7 +107,7 @@ Provides basic access/modification methods.
       * The weighted graph to be modified.  
     * **Result:**  
       * A new weighted graph that contains the original graph as well as the new arcs.  
-    * Pre: The node in the arc list are in the graph.  
+    * **Pre:** The node in the arc list are in the graph.  
 
   * `addUWArcs :: [((Int, Int), Int)] -> a -> a`  
     * Adds the **undirected** weighted arcs specified by the list of pairs in the first argument;  
@@ -116,7 +118,7 @@ Provides basic access/modification methods.
       * The weighted graph to be modified.  
     * **Result:**  
       * A new weighted undirected graph that contains the original graph as well as the new arcs.  
-    * Pre: The node in the arc list are in the graph.  
+    * **Pre:** The node in the arc list are in the graph.  
 
   * `addNodes :: [Int] -> a -> a`  
     * Adds the nodes indicated by the list to the graph, ignoring duplicates.  
@@ -136,7 +138,7 @@ Provides basic access/modification methods.
       * The directed graph to be modified.  
     * **Result:**  
       * A new directed graph that removes the given arcs from the original graph.  
-    * Pre: The node in the arc list are in the graph.  
+    * **Pre:** The node in the arc list are in the graph.  
 
   * `removeUArcs :: [(Int, Int)] -> a -> a`  
     * Removes the undirected arcs specified by the list of pairs in the first argument;  
@@ -147,7 +149,7 @@ Provides basic access/modification methods.
       * The graph to be modified.  
     * **Result:**  
       * A new graph that removes the given arcs from the original graph.  
-    * Pre: The node in the arc list are in the graph.  
+    * **Pre:** The node in the arc list are in the graph.  
 
   * `removeNodes :: [Int] -> a -> a`  
     * Removes the nodes indicated by the list to the graph, ignoring duplicates.  
@@ -176,7 +178,7 @@ Provides basic access/modification methods.
       * The weighted graph.  
     * **Result:**  
       * A new weighted graph that sets the weight of the given arcs to the given values from the original graph.  
-    * Pre: The node in the arc list are in the graph.  
+    * **Pre:** The node in the arc list are in the graph.  
 
   * `simplify :: a -> a`
     * Convert a graph to a simple unweighted graph by removing all loops and parallels.  
@@ -211,14 +213,14 @@ Provides basic access/modification methods.
       * The graph.  
     * **Result:**  
       * The list of **directed** arcs in the graph.  
-    * Pre: The graph is directed.  
+    * **Pre:** The graph is directed.  
 
   *  `uArcs :: a -> [((Int, Int), Int)]`
     * **Argument 1:**  
       * The graph.  
     * **Result:**  
       * The list of **undirected** arcs in the graph.  
-    * Pre: The graph is undirected.  
+    * **Pre:** The graph is undirected.  
 
   * `inDegree :: Int -> a -> Int`  
     * **Argument 1 `Int`:**  
@@ -227,7 +229,7 @@ Provides basic access/modification methods.
       * The graph.  
     * **Result:**  
       * The indegree of the node.  
-    * Pre: The node is in the graph.  
+    * **Pre:** The node is in the graph.  
 
   * `outDegree :: Int -> a -> Int`  
     * **Argument 1 `Int`:**  
@@ -236,7 +238,7 @@ Provides basic access/modification methods.
       * The graph.  
     * **Result:**  
       * The outdegree of the node.  
-    * Pre: The node is in the graph.  
+    * **Pre:** The node is in the graph.  
 
   * `degree :: Int -> a -> Int`  
     * Returns the degree of a node in an unweighted graph;
@@ -247,7 +249,7 @@ Provides basic access/modification methods.
       * The graph.  
     * **Result:**  
       * The outdegree of the node.  
-    * Pre: The node is in the graph and the graph is unweighted.  
+    * **Pre:** The node is in the graph and the graph is unweighted.  
 
   * `neighbours :: Int -> a -> [Int]`
   * Returns the list of nodes that connects from the given node.  
@@ -258,7 +260,7 @@ Provides basic access/modification methods.
     * The graph.  
   * **Result:**  
     * The list of adjacent nodes from the given node.  
-  * Pre: The node is in the graph.  
+  * **Pre:** The node is in the graph.  
 
 * `data GraphList`  
   * Represents unweighted graphs/simple integer-weighted graphs in the form of Adjacency List.  
@@ -284,7 +286,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * The graph.  
   * **Result:**  
     * A list of tuples, where for each entry the first element is the node, and the second element is the depth of the corresponding node.  
-  * Pre: The given node is in the graph.  
+  * **Pre:** The given node is in the graph.  
 
 * `depthFirstTree :: Graph a => Int -> a -> a`  
   * Traverses the graph using Depth-First Search from a given node and returns the corresponding spanning tree;  
@@ -295,7 +297,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * The graph.  
   * **Result:**  
     * The spanning tree generated by the search.  
-  * Pre: The given node is in the graph.  
+  * **Pre:** The given node is in the graph.  
 
 * `topologicalSort :: Graph a => a -> Maybe [Int]`  
   * Topological sorting of a directed acyclic graph (DAG);  
@@ -315,7 +317,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * The graph.  
   * **Result:**  
     * A list of tuples, where for each entry the first element is the node, and the second element is the depth of the corresponding node.  
-  * Pre: The given node is in the graph.  
+  * **Pre:** The given node is in the graph.  
 
 * `breadthFirstTree :: Graph a => Int -> a -> a`  
   * Traverses the graph using Breadth-First Search from a given node and returns the corresponding spanning tree;  
@@ -326,7 +328,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * The graph.  
   * **Result:**  
     * The spanning tree generated by the search.  
-  * Pre: The given node is in the graph.  
+  * **Pre:** The given node is in the graph.  
 
 * `isConnected :: Graph a => a -> Bool`  
   * Test if the undirected graph is connected;  
@@ -336,7 +338,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Result:**  
     * `True` if the graph is connected;
     * `False` if the graph is disconnected.  
-  * Pre: The graph is undirected. 
+  * **Pre:** The graph is undirected. 
 
 * `isStronglyConnected :: Graph a => a -> Bool`  
   * Test if the (directed) graph is strongly connected;  
@@ -358,7 +360,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Result:**  
     * A non-negative Int representing the unweighted distance from the first node to the second node;  
     * If no such path exists, then Nothing.  
-  * Pre: The given nodes are in the graph.  
+  * **Pre:** The given nodes are in the graph.  
 
 * `depthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
   * A State that simulates Depth-First Search.  
@@ -394,7 +396,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Result:**  
     * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
     * To make a valid search, the initial state should be in the form of `((empty, empty), info)`, where empty is the empty Set.  
-  * Pre: The given node is in the graph.  
+  * **Pre:** The given node is in the graph.  
 
 * `breadthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
   * A State that simulates Breadth-First Search.  
@@ -426,7 +428,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Result:**  
     * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
     * To make a valid search, the initial state should be in the form of `((Data.Set.empty, Data.Sequence.empty), info)`.  
-  * Pre: The given node is in the graph.  
+  * **Pre:** The given node is in the graph.  
 <br />  
 
 ## [Back to Title](#Haskell-Graphs)  
@@ -443,7 +445,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Result:**  
     * The Minimum Spanning Tree wrapped in a `Just` if existed;  
     * If the graph is disconnected, then `Nothing`.  
-  * Pre: The graph is undirected.  
+  * **Pre:** The graph is undirected.  
 
 * `primMSTWeights :: Graph a => a -> Maybe Int`  
   * Returns the total weight of the Minimum Spanning Tree via Prim's Algorithm;  
@@ -453,7 +455,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Result:**  
     * The Minimum Spanning Tree's total weight wrapped in a `Just` if existed;  
     * If the graph is disconnected, then `Nothing`.  
-  * Pre: The graph is undirected.  
+  * **Pre:** The graph is undirected.  
 
 * `kruskalMST :: Graph a => a -> Maybe a`  
   * Generates the Minimum Spanning Tree via Kruskal's Algorithm;  
@@ -463,7 +465,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Result:**  
     * The Minimum Spanning Tree wrapped in a `Just` if existed;  
     * If the graph is disconnected, then `Nothing`.  
-  * Pre: The graph is undirected.  
+  * **Pre:** The graph is undirected.  
 
 * `kruskalMSTWeights :: Graph a => a -> Maybe Int`  
   * Returns the total weight of the Minimum Spanning Tree via Kruskal's Algorithm;  
@@ -473,7 +475,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Result:**  
     * The Minimum Spanning Tree's total weight wrapped in a `Just` if existed;  
     * If the graph is disconnected, then `Nothing`.  
-  * Pre: The graph is undirected.  
+  * **Pre:** The graph is undirected.  
 
 * `primS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
   * A State that simulates Prim's Algorithm;  
@@ -498,7 +500,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Result:**  
     * A state that stores the information and returns an instance of type `Terminate ()`;
     * If the output indicates `break`, then the algorithm ends prematurely, either because Argument 2 kills the process, or because the graph is not connected and thus a spanning tree is impossible.  
-  * Pre: The graph is undirected.  
+  * **Pre:** The graph is undirected.  
 
 * `kruskalS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
   * A State that simulates Kruskal's Algorithm;  
@@ -523,15 +525,15 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Result:**  
     * A state that stores the information and returns an instance of type `Terminate ()`;
     * If the output indicates `break`, then the algorithm ends prematurely.  
-  * Pre: The graph is undirected.  
+  * **Pre:** The graph is undirected.  
 <br />  
 
 ## [Back to Title](#Haskell-Graphs)  
 <br />
 
 # [Utilities.hs](./Utilities.hs)
-Contains helper functions for the rest of the program, especially monad-related.  
 
+## Monadic Loop Control  
 In the higher-order functions for Depth-First and Breadth-First Searches, the algorithms may halt the search based on a given condition (*e.g.* when a cycle is detected), in this case we would like a mechanism that simulates `break` in imperative languages such as `C`.  
 A natural way of doing so is to wrap the information in an `Either`.  
 
@@ -701,7 +703,59 @@ foo n
     * A monadic action.  
   * **Result:**  
     * A new monadic action formed by iterating the second argument until break;  
-    * If the function terminates, then it always produces a result wrapped in `Terminate` that represents break.  
+    * If the function terminates, then it always produces a result wrapped in `Terminate` that represents break (*i.e.* `Left _`).  
+
+## Union Find  
+This file also contains a data type, `UnionFind`, that is vital in Kruskal's Algorithm.  
+
+* `data UnionFind = UF (IntMap Int) (IntMap (Seq Int))`  
+  * Represents a group of (disjoint) equivalence classes on a subset of **N**;  
+  * Each equivalent class has a representative element;  
+  * The equivalence classes are dynamic, which means we can merge two classes into one.  
+
+* `emptyUF :: UnionFind`  
+  * Returns an empty `UnionFind` with zero equivalence classes.  
+
+* `initUF :: [Int] -> UnionFind`  
+  * Initialises a trivial `UnionFind`.  
+  * **Argument 1:**  
+    * The list of integers to be stored.  
+  * **Result:**  
+    * A group of equivalence classes using the raltionship `=`, *i.e.* every integer is equivalent only to itself.  
+  * **Pre:** The list must contain no duplicates.  
+
+* `getRep :: Int -> UnionFind -> Int`
+  * **Argument 1 `Int`:**  
+    * An integer in one of the equivalence classes.  
+  * **Argument 2 `UnionFind`:**  
+    * The `UnionFind` data.  
+  * **Result:**  
+    * The representative of the given integer in the given `UnionFind`.  
+  * **Pre:** The integer must be a member of one of the equivalence classes.  
+
+* `equiv :: Int -> Int -> UnionFind -> Bool`  
+  * **Argument 1 `Int`:**  
+    * An integer in one of the equivalence classes.  
+  * **Argument 2 `Int`:**  
+    * Another integer in one of the equivalence classes.  
+  * **Argument 2 `UnionFind`:**  
+    * The `UnionFind` data.  
+  * **Result:**  
+    * `True` if the two integers belong to the same equivalence class in the `UnionFind`, otherwise `False`.  
+  * **Pre:** The integers must belong to some of the equivalence classes.  
+
+* `unionFind :: Int -> Int -> UnionFind -> UnionFind`  
+  * Takes the union of two equivalence classes in a `UnionFind`, *i.e.* merges them into one and pick one of the representatives to be the new representative.  
+  * **Argument 1 `Int`:**  
+    * An integer in one of the equivalence classes.  
+  * **Argument 2 `Int`:**  
+    * Another integer in one of the equivalence classes.  
+  * **Argument 2 `UnionFind`:**  
+    * The `UnionFind` data.  
+  * **Result:**  
+    * An updated `UnionFind` where the two original equivalence classes corresponding to the given integers are merged. One of the original representatives is picked to be the representative of the bigger equivalence class.
+  * **Pre:** The integers must belong to some of the equivalence classes;  
+  * **Pre:** The integers must not belong to the same equivalence class.  
 
 <br />  
 
