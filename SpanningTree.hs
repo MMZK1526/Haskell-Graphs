@@ -4,8 +4,7 @@ module SpanningTree where
 
 import           Control.Monad
 import           Control.Monad.Trans.State
-import           Data.Array.Unboxed hiding ((!))
-import           Data.List (maximum, minimum, minimumBy, sortBy)
+import           Data.List (minimumBy, sortBy)
 import           Data.Maybe (fromJust)
 
 -- May require installation
@@ -138,7 +137,7 @@ kruskalS graph fun = do
       ((acc, arcs, uf), t) <- get
       breakWhen (acc == sz - 1 || Prelude.null arcs) $ do
         let (((n, n'), w) : as) = arcs
-        if getRep n uf == getRep n' uf
+        if equiv n n' uf
           then put ((acc, as, uf), t) >> continueLoop
           else do
             let (b, t') = runState (fun n n' w) t

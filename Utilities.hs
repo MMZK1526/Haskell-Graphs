@@ -128,9 +128,9 @@ loop i f = do
 --------------------------------------------------------------------------------
 
 -- Union Find
--- Contains a number of equivalence classes, each signified by a representative,
--- and we can merge two equivalence classes together as well as check the
--- representative of any given element (Int).
+-- Contains a number of integer equivalence classes, each signified by a 
+-- representative, and we can merge two equivalence classes together as well as 
+-- check the representative of any given element.
 
 data UnionFind = UF (IntMap Int) (IntMap (Seq Int))
   deriving (Show)
@@ -151,12 +151,17 @@ getRep :: Int -> UnionFind -> Int
 getRep e (UF im _)
   = im ! e
 
+-- Check if two elements belong to the same equivalence class.
+-- Pre: the elements are in the equivalent classes. 
+equiv :: Int -> Int -> UnionFind -> Bool
+equiv = (. getRep) . liftA2 (==) . getRep
+
 -- Take union of two equivalence classes, choosing one of the representatives
 -- as the new representative.
--- Pre: the elements are in the equivalent classes.
+-- Pre: the elements are in different equivalent classes.
 unionFind :: Int -> Int -> UnionFind -> UnionFind
 unionFind i j uf@(UF im sets)
-  = UF im' $ sets'
+  = UF im' sets'
   where
     i' = getRep i uf
     j' = getRep j uf
