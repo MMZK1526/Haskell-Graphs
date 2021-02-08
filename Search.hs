@@ -12,7 +12,7 @@ import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Maybe (fromJust, isNothing)
 
--- May require installation
+-- Require installation
 import           Data.IntMap.Lazy as IM
   (IntMap(..), empty, insert, member, (!), (!?))
 import           Data.Sequence hiding (length, null, (!?))

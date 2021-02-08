@@ -13,7 +13,7 @@ import           Data.Maybe (fromJust, isNothing, maybe)
 import           Data.Tuple (swap)
 import           Prelude hiding (map, replicate)
 
--- May require installation
+-- Require installation
 import           Data.IntMap.Lazy
   (IntMap(..), adjust, delete, fromAscList, insert, keys, map, mapWithKey
   , member, notMember, (!), (!?)

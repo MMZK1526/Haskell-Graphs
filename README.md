@@ -6,7 +6,7 @@ For a quick guide on the algorithms, check out [Examples.hs](./Examples.hs).
 For full documentation of the functions, see below.  
 
 Dependencies: `Data.IntMap`, `Data.Sequence`, `Data.Set`.  
-These should be available in default GHC. If not, install the hackage `containers`.  
+Tnstall the hackages `containers` and `fingertree`.  
 <br />
 
 # Contents   

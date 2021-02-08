@@ -7,7 +7,7 @@ import           Control.Monad.Trans.State
 import           Data.List (minimumBy, sortBy)
 import           Data.Maybe (fromJust)
 
--- May require installation
+-- Require installation
 import           Data.IntMap.Lazy as IM 
   (IntMap(..), delete, empty, keys, insert, notMember, null, (!))
 import           Data.Set as S 

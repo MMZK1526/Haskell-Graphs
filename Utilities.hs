@@ -11,7 +11,7 @@ import           Data.Foldable (forM_, toList)
 import           Data.Maybe (isNothing)
 import           Prelude hiding (length)
 
--- May require installation
+-- Require installation
 import           Data.IntMap.Lazy as IM 
   (IntMap(..), delete, empty, insert, update, (!))
 import           Data.Sequence as S (Seq(..), length, singleton, (<|), (><))
