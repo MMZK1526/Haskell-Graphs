@@ -9,6 +9,7 @@ import           Data.IntMap.Lazy (IntMap(..))
 
 import           Graph
 import           Search
+import           ShortestPath
 import           SpanningTree
 
 

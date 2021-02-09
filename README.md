@@ -6,7 +6,7 @@ For a quick guide on the algorithms, check out [Examples.hs](./Examples.hs).
 For full documentation of the functions, see below.  
 
 Dependencies: `Data.IntMap`, `Data.Sequence`, `Data.Set`.  
-Tnstall the hackages `containers` and `fingertree`.  
+Install the hackages `containers`.  
 <br />
 
 # Contents   

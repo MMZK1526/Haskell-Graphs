@@ -7,7 +7,7 @@ import           Control.Monad.Trans.State
 import           Data.List (minimumBy, sortBy)
 import           Data.Maybe (fromJust)
 
--- Require installation
+-- Requires installation
 import           Data.IntMap.Lazy as IM 
   (IntMap(..), delete, empty, keys, insert, notMember, null, (!))
 import           Data.Set as S 
@@ -50,7 +50,7 @@ primMSTWeights graph
 -- A State that simulates Prim's Algorithm.
 -- This function is convoluted and is not necessary unless you need to do custom
 -- actions during the formation of the spanning tree.
--- See full documentation in README.md. (TODO)
+-- See full documentation in README.md.
 -- Pre: The graph is undirected.
 primS :: (Graph a, Flaggable l) 
   => a 
