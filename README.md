@@ -19,6 +19,7 @@ Tnstall the hackages `containers` and `fingertree`.
 ## 4. [Utilities.hs](#utilitieshs)  
   * ### [Monadic Loop Control](#monadic-loop-control-1)
   * ### [Union Find](#union-find-1)  
+  * ### [Miscellaneous](#miscellaneous-1)  
 <br />
 
 # [Graph.hs](./Graph.hs)
@@ -750,12 +751,25 @@ This file also contains a data type, `UnionFind`, that is vital in Kruskal's Alg
     * An integer in one of the equivalence classes.  
   * **Argument 2 `Int`:**  
     * Another integer in one of the equivalence classes.  
-  * **Argument 2 `UnionFind`:**  
+  * **Argument 3 `UnionFind`:**  
     * The `UnionFind` data.  
   * **Result:**  
     * An updated `UnionFind` where the two original equivalence classes corresponding to the given integers are merged. One of the original representatives is picked to be the representative of the bigger equivalence class.
   * **Pre:** The integers must belong to some of the equivalence classes;  
   * **Pre:** The integers must not belong to the same equivalence class.  
+
+## Miscellaneous  
+* `runWhenJust :: Monad m => Maybe a -> m b -> m ()`  
+  * Apply the monadic action if the first argument is not `Nothing`;  
+  * The polymorphic type `m` represents any monad;  
+  * The polymorphic types `a` and `b` represent any types.  
+  * **Argument 1 (`Maybe a`):**  
+    * A piece of information or `Nothing`.  
+  * **Argument 2 (`m b`):**  
+    * A monadic action.  
+  * **Result:**  
+    * Simply returns `()` if the Argument 1 is `Nothing`;  
+    * Otherwise run the monadic action (that still returns `()` eventually).  
 
 <br />  
 
