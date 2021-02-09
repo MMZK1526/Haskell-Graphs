@@ -25,9 +25,7 @@ shortestDistances :: (Graph a) => Int -> a -> IntMap Int
 shortestDistances n graph
   = execState (dijkstraS n graph sp) empty
   where
-    sp _ n d = do
-      acc <- get
-      put $ IM.insert n d acc
+    sp _ n d = get >>= put . IM.insert n d
 
 -- Returns the shortest distance between two nodes, or Nothing if disconnected.
 -- Pre: The nodes are in the graph.
@@ -35,10 +33,39 @@ shortestDistance :: (Graph a) => Int -> Int -> a -> Maybe Int
 shortestDistance n n' graph
   = (execState (dijkstraS n graph sp) empty) !? n'
   where
-    sp _ n d = do
-      acc <- get
-      put $ IM.insert n d acc
-      breakUpon (n' == n)
+    sp _ n d 
+      = get >>= put . IM.insert n d >> breakUpon (n' == n)
+
+-- Returns the directed unweighted shortest distance spanning tree from
+-- a given root to all reachable nodes
+-- Pre: The root is in the graph.
+shortestDistanceSpanningTree :: (Graph a) => Int -> a -> a
+shortestDistanceSpanningTree n graph
+  = execState (dijkstraS n graph sp) $ initGraph (nodes graph) []
+  where
+    sp n n' _ 
+      = get >>= put . addArcs [(n, n')]
+
+shortestPath :: (Graph a) => Int -> Int -> a -> Maybe [(Int, Int)]
+shortestPath n n' graph
+  = reverse <$> process (execState (dijkstraS n graph sp) empty)
+  where
+    sp n n' _
+      = get >>= put . IM.insert n' n >> breakUpon (n' == n)
+    process pMap
+      | isNothing (pMap !? n') = Nothing
+      | otherwise              = Just $ evalState processS n'
+      where
+        processS = do
+          curN <- get
+          if curN == n
+            then return []
+            else do
+              let prevN = pMap ! curN
+              put prevN
+              rest <- processS
+              return $ (prevN, curN) : rest
+
 
 -- A State that simulates Dijkstra's Algorithm.
 -- This function is convoluted and is not necessary unless you need to do custom
