@@ -73,18 +73,31 @@ dijkstraS :: (Graph a, Flaggable l)
   -> a 
   -> (Int -> Int -> Int -> State b l) 
   -> State b ()
-dijkstraS root graph fun = do
+dijkstraS = flip flip (const 0) . (flip .) . aStarS
+
+-- A State that simulates A* Algorithm.
+-- This function is convoluted and is not necessary unless you need to do custom
+-- actions during the formation of the shortest path spanning tree.
+-- See full documentation in README.md. (TODO)
+-- Pre: The graph contains no negative cycles.
+aStarS :: (Graph a, Flaggable l) 
+  => Int 
+  -> a 
+  -> (Int -> Int -> Int -> State b l) 
+  -> (Int -> Int)
+  -> State b ()
+aStarS root graph fun heuristic = do
   t <- get
-  let (_, res) = execState dijsktra' ((S.fromList [root], initAdj), t)
+  let (_, res) = execState aStar' ((S.fromList [root], initAdj), t)
   put res
   where
-    initAdj   = execState (forM_ (neighbours root graph) $ \s -> 
+    initAdj = execState (forM_ (neighbours root graph) $ \s -> 
       get >>= put . IM.insert s (fromJust (weight (root, s) graph), root)
       ) empty
-    dijsktra' = loop_ $ do
+    aStar'  = loop_ $ do
       ((v, f), t) <- get
       breakWhen (IM.null f) $ do
-        let minN     = minimumBy ((. (f !)) . compare . (f !)) (keys f)
+        let minN     = minimumBy (comparator f) (keys f)
         let (d, n)   = f ! minN
         let adj      = neighbours minN graph
         let v'       = S.insert minN v
@@ -97,3 +110,5 @@ dijkstraS root graph fun = do
             else put $ IM.insert s (min (fringe ! s) (d + newW, minN)) fringe
           ) $ delete minN f), t')
         return b'
+    comparator f n n'
+      = compare (fst (f ! n) + heuristic n) (fst (f ! n') + heuristic n') 
