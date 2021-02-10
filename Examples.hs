@@ -286,8 +286,12 @@ wg3
     -- 8: [2: 3]
   -- kruskalMSTWeights wg3
     -- Just 29
-  
--- More examples on MST
+
+
+-------------------------------------------------------------------------------- 
+-- Shortest Distance
+-------------------------------------------------------------------------------- 
+
 wg4, wg5 :: GraphList
 wg4
   = initUWGraph [1..7] 
@@ -299,3 +303,47 @@ wg5
   [((1, 2), 3), ((1, 5), 5), ((1, 6), 7), ((1, 7), 5), ((2, 3), 7), ((3, 4), 2),
    ((3, 5), 6), ((4, 5), 9), ((4, 6), 8), ((6, 7), 7)
   ]
+
+-- Shortest Distance between node 1 and the other nodes:
+  -- shortestDistances 1 wg4
+    -- fromList [(1,0),(2,4),(3,7),(4,10),(5,5),(6,8),(7,6)]
+  -- shortestDistances 1 wg5
+    -- fromList [(1,0),(2,3),(3,10),(4,12),(5,5),(6,7),(7,5)]
+
+-- If the graph is not strongly connected, the function returns the distance
+-- to all reachable nodes:
+  -- shortestDistances 1 procedures
+    -- fromList [(1,0),(2,1),(5,2),(7,2)]
+  -- shortestDistances 7 procedures
+    -- fromList []
+
+-- The distance and path between two nodes:
+  -- shortestDistance 1 6 wg4
+    -- Just (8,[(1,5),(5,6)])
+  -- shortestDistance 1 4 wg5
+    -- Just (12,[(1,2),(2,3),(3,4)])
+  -- shortestDistance 1 1 procedures
+    -- Just (0,[])
+  -- shortestDistance 2 1 procedures
+    -- Nothing
+
+
+-- If we provide a consitent heuristic function that estimates the distance
+-- between all nodes and the end node, we can use efficient A* algorithm.
+
+-- The heuristic distance betweeen any node and node 7 in wg4:
+hWg4 :: Int -> Int
+hWg4 1 = 7
+hWg4 2 = 4
+hWg4 3 = 2
+hWg4 4 = 0
+hWg4 5 = 8
+hWg4 6 = 10
+hWg4 7 = 13
+
+-- In ghci:
+  -- shortestDistanceWithHeuristic hWg4 1 6 wg4
+    -- Just (8,[(1,5),(5,6)])
+-- If the heuristic is not consistent, the function may return wrong result!
+  -- shortestDistanceWithHeuristic (\s -> (7 - s) * 100) 1 6 wg4
+    -- Just (16,[(1,7),(7,6)])

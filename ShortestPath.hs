@@ -31,27 +31,44 @@ shortestDistances n graph
 -- or Nothing if disconnected.
 -- Pre: The nodes are in the graph.
 shortestDistance :: (Graph a) => Int -> Int -> a -> Maybe (Int, [(Int, Int)])
-shortestDistance n n' graph
+shortestDistance = shortestDistanceWithHeuristic $ const 0
+
+-- Returns the shortest distance between two nodes as well the path,
+-- or Nothing if disconnected, with the aid of an heuristic function.
+-- Pre: The nodes are in the graph and the heuristic is consitent.
+shortestDistanceWithHeuristic :: (Graph a) 
+  => (Int -> Int) 
+  -> Int 
+  -> Int 
+  -> a 
+  -> Maybe (Int, [(Int, Int)])
+shortestDistanceWithHeuristic heuristic n n' graph
   = liftM2 (,) (dMap !? n') (reverse <$> process path)
   where
-    (dMap, path) = execState (dijkstraS n graph sp) (empty, empty)
-    sp n n' d    = do
+    (dMap, path) = execState (aStarS n graph sp heuristic) (empty, empty)
+    sp n1 n2 d = do
       (dMap, path) <- get
-      put (IM.insert n' d dMap, IM.insert n' n path)
-      breakUpon $ n' == n
-    process path
-      | isNothing (path !? n') = Nothing
-      | otherwise              = Just $ evalState processS n'
-      where
-        processS = do
-          curN <- get
-          if curN == n
-            then return []
-            else do
-              let prevN = path ! curN
-              put prevN
-              rest <- processS
-              return $ (prevN, curN) : rest
+      put (IM.insert n2 d dMap, IM.insert n2 n1 path)
+      breakUpon $ n2 == n'
+    processS   = do
+      curN <- get
+      if curN == n
+        then return []
+        else do
+          let prevN = path ! curN
+          put prevN
+          rest <- processS
+          return $ (prevN, curN) : rest
+    process path 
+      = path !? n' >> Just (evalState processS n')
+
+foo n n' graph = dMap
+  where
+    (dMap, path) = execState (dijkstraS n graph sp) (empty, empty)
+    sp n1 n2 d = do
+      (dMap, path) <- get
+      put (IM.insert n2 d dMap, IM.insert n2 n1 path)
+      breakUpon $ n2 == n'
 
 -- Returns the directed unweighted shortest distance spanning tree from
 -- a given root to all reachable nodes
@@ -61,7 +78,8 @@ shortestDistanceSpanningTree n graph
   = execState (dijkstraS n graph sp) $ initGraph (nodes graph) []
   where
     sp n n' _ 
-      = get >>= put . addArcs [(n, n')]
+      | n == n'   = return ()
+      | otherwise = get >>= put . addArcs [(n, n')]
 
 -- A State that simulates Dijkstra's Algorithm.
 -- This function is convoluted and is not necessary unless you need to do custom
@@ -88,8 +106,13 @@ aStarS :: (Graph a, Flaggable l)
   -> State b ()
 aStarS root graph fun heuristic = do
   t <- get
-  let (_, res) = execState aStar' ((S.fromList [root], initAdj), t)
-  put res
+  let (b, t') = runState (fun root root 0) t
+  put t'
+  runUnlessBreak b $ do
+    t <- get
+    let (_, res) = execState aStar' ((S.fromList [root], initAdj), t)
+    put res
+  return ()
   where
     initAdj = execState (forM_ (neighbours root graph) $ \s -> 
       get >>= put . IM.insert s (fromJust (weight (root, s) graph), root)
