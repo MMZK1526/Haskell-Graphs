@@ -27,14 +27,31 @@ shortestDistances n graph
   where
     sp _ n d = get >>= put . IM.insert n d
 
--- Returns the shortest distance between two nodes, or Nothing if disconnected.
+-- Returns the shortest distance between two nodes as well the path,
+-- or Nothing if disconnected.
 -- Pre: The nodes are in the graph.
-shortestDistance :: (Graph a) => Int -> Int -> a -> Maybe Int
+shortestDistance :: (Graph a) => Int -> Int -> a -> Maybe (Int, [(Int, Int)])
 shortestDistance n n' graph
-  = (execState (dijkstraS n graph sp) empty) !? n'
+  = liftM2 (,) (dMap !? n') (reverse <$> process path)
   where
-    sp _ n d 
-      = get >>= put . IM.insert n d >> breakUpon (n' == n)
+    (dMap, path) = execState (dijkstraS n graph sp) (empty, empty)
+    sp n n' d    = do
+      (dMap, path) <- get
+      put (IM.insert n' d dMap, IM.insert n' n path)
+      breakUpon $ n' == n
+    process path
+      | isNothing (path !? n') = Nothing
+      | otherwise              = Just $ evalState processS n'
+      where
+        processS = do
+          curN <- get
+          if curN == n
+            then return []
+            else do
+              let prevN = path ! curN
+              put prevN
+              rest <- processS
+              return $ (prevN, curN) : rest
 
 -- Returns the directed unweighted shortest distance spanning tree from
 -- a given root to all reachable nodes
@@ -65,7 +82,6 @@ shortestPath n n' graph
               put prevN
               rest <- processS
               return $ (prevN, curN) : rest
-
 
 -- A State that simulates Dijkstra's Algorithm.
 -- This function is convoluted and is not necessary unless you need to do custom
