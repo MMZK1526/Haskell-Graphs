@@ -16,9 +16,6 @@ import           Data.Set as S (fromList, insert, member)
 import           Graph
 import           Utilities
 
-infinity :: Int
-infinity = maxBound
-
 -- Returns an IntMap of nodes reachable from the given root and their distances.
 -- Pre: The root is in the graph.
 shortestDistances :: (Graph a) => Int -> a -> IntMap Int

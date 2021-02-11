@@ -16,7 +16,9 @@ Install the hackages `containers`.
 
 ## 3. [SpanningTree.hs](#spanningtreehs)  
 
-## 4. [Utilities.hs](#utilitieshs)  
+## 4. [ShortestPath.hs](#shortestpathhs)
+
+## 5. [Utilities.hs](#utilitieshs)  
   * ### [Monadic Loop Control](#monadic-loop-control-1)
   * ### [Union Find](#union-find-1)  
   * ### [Miscellaneous](#miscellaneous-1)  
@@ -364,7 +366,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Pre:** The given nodes are in the graph.  
 
 * `depthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
-  * A State that simulates Depth-First Search.  
+  * A `State` that simulates Depth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search.  
   * The polymorphic type `a` represents the graph.  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
@@ -382,7 +384,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information and returns a `Flaggable`;  
+      * A `State` that updates the information and returns a `Flaggable`;  
       * If it terminates (*e.g.* ends in `breakLoop`), then the search will terminate;  
       * Otherwise (*e.g.* ends in `continueLoop`), the search will continue;  
       * Termination is used in the occasion where it is OK to end the search prematurely.  
@@ -391,16 +393,16 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information and returns a `Flaggable`;  
+      * A `State` that updates the information and returns a `Flaggable`;  
       * If it terminates (*e.g.* ends in `breakLoop`), then the search will terminate;  
       * Otherwise (*e.g.* ends in `continueLoop`), the search will continue.  
   * **Result:**  
-    * A State that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
+    * A `State` that stores the tuple of firstly/lastly visited nodes (should be the same if the search is not prematurely terminated), as well as information produced by the search;  
     * To make a valid search, the initial state should be in the form of `((empty, empty), info)`, where empty is the empty Set.  
   * **Pre:** The given node is in the graph.  
 
 * `breadthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
-  * A State that simulates Breadth-First Search.  
+  * A `State` that simulates Breadth-First Search.  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search.  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
   * The polymorphic type `a` represents the graph.  
@@ -414,7 +416,7 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the first time.  
     * *Result:*  
-      * A State that updates the information and returns a `Flaggable`;  
+      * A `State` that updates the information and returns a `Flaggable`;  
       * If it terminates, then the search will terminate;  
       * Otherwise, the search will continue;  
       * Termination is used in the occasion where it is OK to end the search prematurely.  
@@ -423,11 +425,11 @@ Conducts topological sort on directed acylic graphs (DAG).
     * *Argument 1:*  
       * The node that the search encounters for the last time.  
     * *Result:*  
-      * A State that updates the information and returns a `Flaggable`;  
+      * A `State` that updates the information and returns a `Flaggable`;  
       * If it terminates, then the search will terminate;  
       * Otherwise, the search will continue.  
   * **Result:**  
-    * A State that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
+    * A `State` that stores the tuple consists all visited nodes and the frontier (which should be empty if the search is not prematurely terminated), as well as information produced by the search;  
     * To make a valid search, the initial state should be in the form of `((Data.Set.empty, Data.Sequence.empty), info)`.  
   * **Pre:** The given node is in the graph.  
 <br />  
@@ -479,7 +481,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Pre:** The graph is undirected.  
 
 * `primS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
-  * A State that simulates Prim's Algorithm;  
+  * A `State` that simulates Prim's Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the spanning tree;  
   * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* the spanning tree itself or the total weight of the tree.  
@@ -495,7 +497,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
     * *Argument 3 `Int`:*  
       * The weight the newly discovered arc.  
     * *Result:*  
-      * A State that updates the information and returns a `Flaggable`;  
+      * A `State` that updates the information and returns a `Flaggable`;  
       * If it terminates, then the algorithm will terminate;  
       * Otherwise, the algorithm will continue;  
   * **Result:**  
@@ -504,7 +506,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Pre:** The graph is undirected.  
 
 * `kruskalS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
-  * A State that simulates Kruskal's Algorithm;  
+  * A `State` that simulates Kruskal's Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the spanning tree;  
   * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the search.  
@@ -520,13 +522,135 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
     * *Argument 3 `Int`:*  
       * The weight the newly discovered arc.  
     * *Result:*  
-      * A State that updates the information and returns a `Flaggable`;  
+      * A `State` that updates the information and returns a `Flaggable`;  
       * If it terminates, then the algorithm will terminate;  
       * Otherwise, the algorithm will continue;  
   * **Result:**  
     * A state that stores the information and returns an instance of type `Terminate ()`;
     * If the output indicates `break`, then the algorithm ends prematurely.  
   * **Pre:** The graph is undirected.  
+<br />  
+
+## [Back to Title](#Haskell-Graphs)  
+<br />
+
+
+# [ShortestPath.hs](./ShortestPath.hs)
+
+Find shortest distance and shortest path between nodes of a weighted graph with Dijkstra's Algorithm and A* Algorithm.  
+
+* `shortestDistances :: (Graph a) => Int -> a -> IntMap Int`  
+  * Returns the shortest distance from a given node to all other reachable nodes in the graph, using Dijkstra's Algorithm;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1 `Int`:**  
+    * The starting node.  
+  * **Argument 2 `a`:**  
+    * The graph.  
+  * **Result:**  
+    * An `IntMap` containing key-value pairs of nodes and shortest distance from the origin;  
+    * The distance for the origin itself is 0.  
+  * *Pre:* The node is in the graph.  
+
+* `shortestDistance :: (Graph a) => Int -> Int -> a -> Maybe (Int, [(Int, Int)])`  
+  * Returns the shortest distance and the corresponding path between two nodes in the graph, using Dijkstra's Algorithm;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1 `Int`:**  
+    * The starting node.  
+  * **Argument 2 `Int`:**  
+    * The finishing node.  
+  * **Argument 3 `a`:**  
+    * The graph.  
+  * **Result:**  
+    * If there exists a path connecting the origin with the destination, returns a tuple of shortest distance and list of arcs corresponding to the path, wrapped in a `Just`;  
+    * If such path does not exist, returns `Nothing`.  
+  * *Pre:* The nodes are in the graph.  
+
+* `shortestDistanceWithHeuristic :: (Graph a) => (Int -> Int) -> Int -> Int -> a -> Maybe (Int, [(Int, Int)])`  
+  * Returns the shortest distance and the corresponding path between two nodes in the graph, using A* Algorithm;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1 `Int -> Int`:**  
+    * The heuristic function that estimates the distance from any node to the finishing node.  
+  * **Argument 2 `Int`:**  
+    * The starting node.  
+  * **Argument 3 `Int`:**  
+    * The finishing node.  
+  * **Argument 4 `a`:**  
+    * The graph.  
+  * **Result:**  
+    * If there exists a path connecting the origin with the destination, returns a tuple of shortest distance and list of arcs corresponding to the path, wrapped in a `Just`;  
+    * If such path does not exist, returns `Nothing`.  
+  * *Pre:* The nodes are in the graph;  
+  * *Pre:* The heuristic is consistent, in other words, the heuristic value of the destination is zero, and if there is a path between x and y, h(x) <= h(y) + W(x, y).  
+
+* `shortestDistanceSpanningTree :: (Graph a) => Int -> a -> a`  
+  * Returns a spanning tree that represents the shortest paths from the root to any reachable nodes;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1 `Int`:**  
+    * The starting node.  
+  * **Argument 2 `a`:**  
+    * The graph.  
+  * **Result:**  
+    * The spanning tree generated by Dijkstra's Algorithm.  
+
+* `dijkstraS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> State b ()`  
+  * A `State` that simulates Dijkstra's Algorithm;  
+  * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
+  * The polymorphic type `a` represents the graph;  
+  * The polymorphic type `b` represents the information produced by the algorithm;  
+  * The polymorphic type `l` represents instance of `Flaggable`.  
+  * **Argument 1 `Int`:**  
+    * The starting node.  
+  * **Argument 2 `a`:**  
+    * The graph.  
+  * **Argument 3 `Int -> Int -> Int -> State b l`:**  
+    * This function will be called whenever the algorithm finds a new node.  
+    * *Argument 1 `Int`:*  
+      * The parent of the new node;  
+      * If the new node is the root itself, then this is also the root.  
+    * *Argument 2 `Int`:*  
+      * The new node discovered by the algorithm.  
+    * *Argument 3 `Int`:*  
+      * The weight of the arc from Argument 1 to Argument 2;  
+      * If the new node is the root, this value is `0`.  
+    * *Result:*  
+      * A `State` that updates the information and returns a `Flaggable`;  
+      * If it terminates, then the algorithm will terminate;  
+      * Otherwise, the algorithm will continue;  
+  * **Result:**  
+    * A `State` containing the information produced by the algorithm.  
+  * *Pre:* The given node is in the graph.  
+
+* `aStarS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> (Int -> Int) -> State b ()`  
+* A `State` that simulates A* Algorithm;  
+  * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
+  * The polymorphic type `a` represents the graph;  
+  * The polymorphic type `b` represents the information produced by the algorithm;  
+  * The polymorphic type `l` represents instance of `Flaggable`.  
+  * **Argument 1 `Int`:**  
+    * The starting node.  
+  * **Argument 2 `a`:**  
+    * The graph.  
+  * **Argument 3 `Int -> Int -> Int -> State b l`:**  
+    * This function will be called whenever the algorithm finds a new node.  
+    * *Argument 1 `Int`:*  
+      * The parent of the new node;  
+      * If the new node is the root itself, then this is also the root.  
+    * *Argument 2 `Int`:*  
+      * The new node discovered by the algorithm.  
+    * *Argument 3 `Int`:*  
+      * The weight of the arc from Argument 1 to Argument 2;  
+      * If the new node is the root, this value is `0`.  
+    * *Result:*  
+      * A `State` that updates the information and returns a `Flaggable`;  
+      * If it terminates, then the algorithm will terminate;  
+      * Otherwise, the algorithm will continue;  
+  * **Argument 5 `Int -> Int`:**  
+    * The heuristic function that estimates the distance from any node to the finishing node.  
+  * **Result:**  
+    * A `State` containing the information produced by the algorithm.  
+  * *Pre:* The given node is in the graph;  
+  * *Pre:* The heuristic function is consistent.  
+
 <br />  
 
 ## [Back to Title](#Haskell-Graphs)  
