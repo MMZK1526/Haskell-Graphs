@@ -347,3 +347,14 @@ hWg4 7 = 13
 -- If the heuristic is not consistent, the function may return wrong result!
   -- shortestDistanceWithHeuristic (\s -> (7 - s) * 100) 1 6 wg4
     -- Just (16,[(1,7),(7,6)])
+
+
+-- It must be pointed out that the algorithms does not work for graphs that
+-- contain negative cycle.
+negCyc :: GraphList
+negCyc = initWGraph [1..3] [((1, 2), -1), ((2, 3), -1), ((3, 1), -1)]
+
+-- In ghci:
+  -- shortestDistance 1 3 negCyc
+    -- Just (-2,[(1,2),(2,3)])
+-- But in reality there is no shortest path.
