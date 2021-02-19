@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
 module ShortestPath where
@@ -134,19 +136,26 @@ aStarS root graph fun heuristic = do
     comparator f n n'
       = compare (fst (f ! n) + heuristic n) (fst (f ! n') + heuristic n') 
 
--- Computing the shortest distance between all pairs of nodes in a graph.
-shortestDistancesFully :: (Graph a) => a -> Map (Int, Int) (Maybe Int)
-shortestDistancesFully graph
+-- Computing the shortest path between all pairs of nodes in a graph.
+-- The result contains a map from tuples of nodes (start, end) to tuples of 
+-- the distance from start to end, and the next node on this path since start. 
+-- For the paths already reaching the destination, next is itself.
+-- Pre: The graph contains no negative cycles.
+shortestPathsFully :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))
+shortestPathsFully graph
   = execState (floydWarshallS starter f graph) M.empty
   where
     starter i j
-      | i /= j    = get >>= put . M.insert (i, j) (weight (i, j) graph)
-      | otherwise = get >>= put . M.insert (i, j) (Just 0)
+      | i /= j    = get >>= 
+        put . M.insert (i, j) ((, j) <$> (weight (i, j) graph))
+      | otherwise = get >>= put . M.insert (i, i) (Just (0, i))
     f i j k = do
-      t <- get
-      let cur = join $ t M.!? (i, j)
-      let new = liftM2 (+) (join $ t M.!? (i, k)) (join $ t M.!? (k, j))
-      put $ M.insert (i, j) (minMaybe cur new) t
+      continueWhen (i == k) $ do
+        t <- get
+        let cur = join $ t M.!? (i, j)
+        let ik  = join $ t M.!? (i, k)
+        let new = liftM2 (+) (fst <$> ik) (fst <$> join (t M.!? (k, j)))
+        put $ M.insert (i, j) (minMaybe cur $ liftM2 (,) new (snd <$> ik)) t
 
 -- Computing the max bandwith between all pairs of distinct nodes in a graph.
 bandWithFully :: (Graph a) => a -> Map (Int, Int) Int
@@ -164,9 +173,9 @@ bandWithFully graph
 
 -- A State that simulates the bare-bones of Floyd-Warshall Algorithm
 -- See full documentation in README.md (TODO).
-floydWarshallS :: (Graph a, Flaggable l) 
-  => (Int -> Int -> State b l) 
-  -> (Int -> Int -> Int -> State b l) 
+floydWarshallS :: (Graph a, Flaggable l1, Flaggable l2) 
+  => (Int -> Int -> State b l1) 
+  -> (Int -> Int -> Int -> State b l2) 
   -> a 
   -> State b (Terminate ())
 floydWarshallS starter f graph = do
