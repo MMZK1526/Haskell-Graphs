@@ -597,7 +597,7 @@ Find shortest distance and shortest path between nodes of a weighted graph with 
   * *Pre:* The nodes are in the graph;  
   * *Pre:* The graph does not contain negative cycles.  
 
-* `dijkstraS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> State b ()`  
+* `dijkstraS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
   * A `State` that simulates Dijkstra's Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
   * The polymorphic type `a` represents the graph;  
@@ -622,11 +622,12 @@ Find shortest distance and shortest path between nodes of a weighted graph with 
       * If it terminates, then the algorithm will terminate;  
       * Otherwise, the algorithm will continue;  
   * **Result:**  
-    * A `State` containing the information produced by the algorithm.  
+    * A `State` containing the information produced by the algorithm;  
+    * If the output indicates `break`, then the algorithm ends prematurely.  
   * *Pre:* The given node is in the graph;  
   * *Pre:* The graph does not contain negative cycles.  
 
-* `aStarS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> (Int -> Int) -> State b ()`  
+* `aStarS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> (Int -> Int) -> State b (Terminate ())`  
 * A `State` that simulates A* Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
   * The polymorphic type `a` represents the graph;  
@@ -653,7 +654,8 @@ Find shortest distance and shortest path between nodes of a weighted graph with 
   * **Argument 5 `Int -> Int`:**  
     * The heuristic function that estimates the distance from any node to the finishing node.  
   * **Result:**  
-    * A `State` containing the information produced by the algorithm.  
+    * A `State` containing the information produced by the algorithm;  
+    * If the output indicates `break`, then the algorithm ends prematurely.  
   * *Pre:* The given node is in the graph;  
   * *Pre:* The graph does not contain negative cycles;  
   * *Pre:* The heuristic function is consistent.  

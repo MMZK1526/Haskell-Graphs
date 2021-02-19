@@ -8,7 +8,7 @@ import           Control.Applicative
 import           Control.Monad.Trans.State
 import           Data.Either (Either(..), isLeft, isRight)
 import           Data.Foldable (forM_, toList)
-import           Data.Maybe (isNothing)
+import           Data.Maybe (isJust, isNothing)
 import           Prelude hiding (length)
 
 -- Require installation
@@ -187,3 +187,12 @@ runWhenJust :: Monad m => Maybe a -> m b -> m ()
 runWhenJust m f
   | isNothing m = return ()
   | otherwise   = f >> return ()
+
+-- minMaybe returns the minimum if both arguments are Justs; Nothing if both
+-- arguments are Nothing; the argument that is a Just if one of them is a Just.
+minMaybe :: (Ord a) => Maybe a -> Maybe a -> Maybe a
+minMaybe ma mb
+  | isJust (ma >> mb) = liftA2 min ma mb
+  | isJust ma         = ma
+  | isJust mb         = mb
+  | otherwise         = Nothing

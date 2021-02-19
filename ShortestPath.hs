@@ -11,6 +11,7 @@ import           Data.Maybe
 -- Requires installation
 import           Data.IntMap.Lazy as IM 
  (IntMap(..), notMember, delete, insert, empty, fromList, keys, null, (!), (!?))
+import           Data.Map as M (Map(..), empty, insert, (!?))
 import           Data.Set as S (fromList, insert, member)
 
 import           Graph
@@ -20,7 +21,7 @@ import           Utilities
 -- Pre: The root is in the graph.
 shortestDistances :: (Graph a) => Int -> a -> IntMap Int
 shortestDistances n graph
-  = execState (dijkstraS n graph sp) empty
+  = execState (dijkstraS n graph sp) IM.empty
   where
     sp _ n d = get >>= put . IM.insert n d
 
@@ -40,9 +41,9 @@ shortestDistanceWithHeuristic :: (Graph a)
   -> a 
   -> Maybe (Int, [(Int, Int)])
 shortestDistanceWithHeuristic heuristic n n' graph
-  = liftM2 (,) (dMap !? n') (reverse <$> process path)
+  = liftM2 (,) (dMap IM.!? n') (reverse <$> process path)
   where
-    (dMap, path) = execState (aStarS n graph sp heuristic) (empty, empty)
+    (dMap, path) = execState (aStarS n graph sp heuristic) (IM.empty, IM.empty)
     sp n1 n2 d = do
       (dMap, path) <- get
       put (IM.insert n2 d dMap, IM.insert n2 n1 path)
@@ -57,18 +58,18 @@ shortestDistanceWithHeuristic heuristic n n' graph
           rest <- processS
           return $ (prevN, curN) : rest
     process path 
-      = path !? n' >> Just (evalState processS n')
+      = path IM.!? n' >> Just (evalState processS n')
 
 foo n n' graph = dMap
   where
-    (dMap, path) = execState (dijkstraS n graph sp) (empty, empty)
+    (dMap, path) = execState (dijkstraS n graph sp) (IM.empty, IM.empty)
     sp n1 n2 d = do
       (dMap, path) <- get
       put (IM.insert n2 d dMap, IM.insert n2 n1 path)
       breakUpon $ n2 == n'
 
 -- Returns the directed unweighted shortest distance spanning tree from
--- a given root to all reachable nodes
+-- a given root to all reachable nodes.
 -- Pre: The root is in the graph.
 shortestDistanceSpanningTree :: (Graph a) => Int -> a -> a
 shortestDistanceSpanningTree n graph
@@ -87,20 +88,20 @@ dijkstraS :: (Graph a, Flaggable l)
   => Int 
   -> a 
   -> (Int -> Int -> Int -> State b l) 
-  -> State b ()
+  -> State b (Terminate ())
 dijkstraS = flip flip (const 0) . (flip .) . aStarS
 
 -- A State that simulates A* Algorithm.
 -- This function is convoluted and is not necessary unless you need to do custom
 -- actions during the formation of the shortest path spanning tree.
--- See full documentation in README.md. (TODO)
+-- See full documentation in README.md.
 -- Pre: The graph contains no negative cycles.
 aStarS :: (Graph a, Flaggable l) 
   => Int 
   -> a 
   -> (Int -> Int -> Int -> State b l) 
   -> (Int -> Int)
-  -> State b ()
+  -> State b (Terminate ())
 aStarS root graph fun heuristic = do
   t <- get
   let (b, t') = runState (fun root root 0) t
@@ -109,11 +110,11 @@ aStarS root graph fun heuristic = do
     t <- get
     let (_, res) = execState aStar' ((S.fromList [root], initAdj), t)
     put res
-  return ()
+  return $ flag b
   where
     initAdj = execState (forM_ (neighbours root graph) $ \s -> 
       get >>= put . IM.insert s (fromJust (weight (root, s) graph), root)
-      ) empty
+      ) IM.empty
     aStar'  = loop_ $ do
       ((v, f), t) <- get
       breakWhen (IM.null f) $ do
@@ -132,3 +133,46 @@ aStarS root graph fun heuristic = do
         return b'
     comparator f n n'
       = compare (fst (f ! n) + heuristic n) (fst (f ! n') + heuristic n') 
+
+-- Computing the shortest distance between all pairs of nodes in a graph.
+shortestDistancesFully :: (Graph a) => a -> Map (Int, Int) (Maybe Int)
+shortestDistancesFully graph
+  = execState (floydWarshallS starter f graph) M.empty
+  where
+    starter i j
+      | i /= j    = get >>= put . M.insert (i, j) (weight (i, j) graph)
+      | otherwise = get >>= put . M.insert (i, j) (Just 0)
+    f i j k = do
+      t <- get
+      let cur = join $ t M.!? (i, j)
+      let new = liftM2 (+) (join $ t M.!? (i, k)) (join $ t M.!? (k, j))
+      put $ M.insert (i, j) (minMaybe cur new) t
+
+-- Computing the max bandwith between all pairs of distinct nodes in a graph.
+bandWithFully :: (Graph a) => a -> Map (Int, Int) Int
+bandWithFully graph
+  = execState (floydWarshallS starter f graph) M.empty
+  where
+    starter i j
+      = continueWhen (i == j) $ 
+      get >>= put . M.insert (i, j) (maybe 0 id $ weight (i, j) graph)
+    f i j k = continueWhen (i == j) $ do
+      t <- get
+      let cur = maybe 0 id $ t M.!? (i, j)
+      let new = min (maybe 0 id $ t M.!? (i, k)) (maybe 0 id $ t M.!? (k, j))
+      put $ M.insert (i, j) (max cur new) t
+
+-- A State that simulates the bare-bones of Floyd-Warshall Algorithm
+-- See full documentation in README.md (TODO).
+floydWarshallS :: (Graph a, Flaggable l) 
+  => (Int -> Int -> State b l) 
+  -> (Int -> Int -> Int -> State b l) 
+  -> a 
+  -> State b (Terminate ())
+floydWarshallS starter f graph = do
+  t <- get
+  let ns = nodes graph
+  b <- forMBreak_ ns $ \x -> forM_ ns $ \y -> starter x y
+  b <- runUnlessBreak b $
+    forMBreak_ ns $ \z -> forM_ ns $ \x -> forM_ ns $ \y -> f x y z
+  return $ flag b
