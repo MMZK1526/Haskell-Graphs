@@ -190,9 +190,22 @@ runWhenJust m f
 
 -- minMaybe returns the minimum if both arguments are Justs; Nothing if both
 -- arguments are Nothing; the argument that is a Just if one of them is a Just.
-minMaybe :: (Ord a) => Maybe a -> Maybe a -> Maybe a
-minMaybe ma mb
-  | isJust (ma >> mb) = liftA2 min ma mb
+minMaybeOn :: (Ord b) => (a -> b) -> Maybe a -> Maybe a -> Maybe a
+minMaybeOn f ma mb
+  | isJust (ma >> mb) = if liftA2 (<=) (f <$> ma) (f <$> mb) == Just True
+     then ma 
+     else mb
+  | isJust ma         = ma
+  | isJust mb         = mb
+  | otherwise         = Nothing
+
+-- maxMaybe returns the maximum if both arguments are Justs; Nothing if both
+-- arguments are Nothing; the argument that is a Just if one of them is a Just.
+maxMaybeOn :: (Ord b) => (a -> b) -> Maybe a -> Maybe a -> Maybe a
+maxMaybeOn f ma mb
+  | isJust (ma >> mb) = if liftA2 (>=) (f <$> ma) (f <$> mb) == Just True 
+    then ma 
+    else mb
   | isJust ma         = ma
   | isJust mb         = mb
   | otherwise         = Nothing

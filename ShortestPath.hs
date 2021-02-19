@@ -149,15 +149,20 @@ shortestPathsFully graph
       | i /= j    = get >>= 
         put . M.insert (i, j) ((, j) <$> (weight (i, j) graph))
       | otherwise = get >>= put . M.insert (i, i) (Just (0, i))
-    f i j k = do
+    f i j k =
       continueWhen (i == k) $ do
         t <- get
         let cur = join $ t M.!? (i, j)
         let ik  = join $ t M.!? (i, k)
-        let new = liftM2 (+) (fst <$> ik) (fst <$> join (t M.!? (k, j)))
-        put $ M.insert (i, j) (minMaybe cur $ liftM2 (,) new (snd <$> ik)) t
+        let val = liftM2 (+) (fst <$> ik) (fst <$> join (t M.!? (k, j)))
+        let new = liftM2 (,) val (snd <$> ik)
+        put $ M.insert (i, j) (minMaybeOn fst cur new) t
 
 -- Computing the max bandwith between all pairs of distinct nodes in a graph.
+-- The result contains a map from tuples of nodes (start, end) to tuples of 
+-- the bandwith from start to end, and the next node on this path since start. 
+-- For the paths already reaching the destination, next is itself.
+-- Pre: The graph contains no negative cycles.
 bandWithFully :: (Graph a) => a -> Map (Int, Int) Int
 bandWithFully graph
   = execState (floydWarshallS starter f graph) M.empty
@@ -165,11 +170,28 @@ bandWithFully graph
     starter i j
       = continueWhen (i == j) $ 
       get >>= put . M.insert (i, j) (maybe 0 id $ weight (i, j) graph)
-    f i j k = continueWhen (i == j) $ do
-      t <- get
-      let cur = maybe 0 id $ t M.!? (i, j)
-      let new = min (maybe 0 id $ t M.!? (i, k)) (maybe 0 id $ t M.!? (k, j))
-      put $ M.insert (i, j) (max cur new) t
+    f i j k 
+      = continueWhen (i == j) $ do
+        t <- get
+        let cur = maybe 0 id $ t M.!? (i, j)
+        let new = min (maybe 0 id $ t M.!? (i, k)) (maybe 0 id $ t M.!? (k, j))
+        put $ M.insert (i, j) (max cur new) t
+
+bandWithFully' :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))
+bandWithFully' graph
+  = execState (floydWarshallS starter f graph) M.empty
+  where
+    starter i j
+      = continueWhen (i == j) $ 
+      get >>= put . M.insert (i, j) ((, j) <$> (weight (i, j) graph))
+    f i j k 
+      = continueWhen (i == j || i == k) $ do
+        t <- get
+        let cur = join $ t M.!? (i, j)
+        let ik  = join $ t M.!? (i, k)
+        let val = liftM2 min (fst <$> ik) (fst <$> join (t M.!? (k, j)))
+        let new = liftM2 (,) val (snd <$> ik)
+        put $ M.insert (i, j) (maxMaybeOn fst cur new) t
 
 -- A State that simulates the bare-bones of Floyd-Warshall Algorithm
 -- See full documentation in README.md (TODO).
