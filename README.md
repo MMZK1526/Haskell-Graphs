@@ -366,9 +366,9 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Pre:** The given nodes are in the graph.  
 
 * `depthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
-  * A `State` that simulates Depth-First Search.  
-  * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search.  
-  * The polymorphic type `a` represents the graph.  
+  * A `State` that simulates Depth-First Search;  
+  * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search;  
+  * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
   * The polymorphic types `l1` and `l2` represent instances of `Flaggable` (see the secion **Utilities.hs** for clarification).  
   * **Argument 1 `Int`:**  
@@ -402,10 +402,10 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Pre:** The given node is in the graph.  
 
 * `breadthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
-  * A `State` that simulates Breadth-First Search.  
-  * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search.  
+  * A `State` that simulates Breadth-First Search;  
+  * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
-  * The polymorphic type `a` represents the graph.  
+  * The polymorphic type `a` represents the graph;  
   * The polymorphic types `l1` and `l2` represent instances of `Flaggable`.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
@@ -537,7 +537,9 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
 
 # [ShortestPath.hs](./ShortestPath.hs)
 
-Find shortest distance and shortest path between nodes of a weighted graph with Dijkstra's Algorithm and A* Algorithm.  
+Finds shortest distance and shortest path between nodes of a weighted graph with Dijkstra's Algorithm and A* Algorithm.  
+Finds shortest distances between all pairs of nodes using Floyd-Warshall Algorithm.  
+Finds max bandwith between all distinct pairs of nodes.  
 
 * `shortestDistances :: (Graph a) => Int -> a -> IntMap Int`  
   * Returns the shortest distance from a given node to all other reachable nodes in the graph, using Dijkstra's Algorithm;  
@@ -597,6 +599,32 @@ Find shortest distance and shortest path between nodes of a weighted graph with 
   * *Pre:* The nodes are in the graph;  
   * *Pre:* The graph does not contain negative cycles.  
 
+* `shortestPathsFully :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))`  
+  * Computing the shortest path between all pairs of nodes in a graph using Floyd-Warshall Algorithm;  
+  * Returns the shortest distance and routing table for all pairs of nodes;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1:**  
+    * The graph.  
+  * **Result:**  
+    * The result contains a map of shortest distance and routing table;  
+    * The keys are tuples `(Int, Int)` recording the starting node and ending node;  
+    * The values are `Maybe (Int, Int)` recording the shortest distance between start and end (if exists) and the next node after start on this path, all wrapped in a `Just`;  
+    * If there is no path, then `Nothing`;  
+  * *Pre:* The graph does not contain negative cycles.  
+
+* `bandwithFully :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))`  
+  * Computing the maximum bandwith between all pairs of nodes in a graph using Floyd-Warshall Algorithm;  
+  * Returns the maximum bandwith and routing table for all pairs of distinct nodes;  
+  * The polymorphic type `a` represents the graph.  
+  * **Argument 1:**  
+    * The graph.  
+  * **Result:**  
+    * The result contains a map of maximum bandwith and routing table;  
+    * The keys are tuples `(Int, Int)` recording the starting node and ending node, given that start `/=` end;  
+    * The values are `Maybe (Int, Int)` recording the maximum bandwith between start and end (if exists) and the next node after start on this path, all wrapped in a `Just`;  
+    * If there is no path, then `Nothing`;  
+  * *Pre:* The graph does not contain negative cycles.  
+
 * `dijkstraS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
   * A `State` that simulates Dijkstra's Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
@@ -628,7 +656,7 @@ Find shortest distance and shortest path between nodes of a weighted graph with 
   * *Pre:* The graph does not contain negative cycles.  
 
 * `aStarS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> (Int -> Int) -> State b (Terminate ())`  
-* A `State` that simulates A* Algorithm;  
+  * A `State` that simulates A* Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
   * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the algorithm;  
@@ -659,6 +687,29 @@ Find shortest distance and shortest path between nodes of a weighted graph with 
   * *Pre:* The given node is in the graph;  
   * *Pre:* The graph does not contain negative cycles;  
   * *Pre:* The heuristic function is consistent.  
+
+* `floydWarshallS :: (Graph a, Flaggable l1, Flaggable l2) => (Int -> Int -> State b l1) -> (Int -> Int -> Int -> State b l2) -> a -> State b (Terminate ())`
+  * A State that simulates the bare-bones of Floyd-Warshall Algorithm;  
+  * The polymorphic type `a` represents the graph;  
+  * The polymorphic type `b` represents the information produced by the algorithm;  
+  * The polymorphic types `l1` and `l2` represent instances of `Flaggable`.  
+  * **Argument 1 `Int -> Int -> State b l1`:**  
+    * The initialising function called once for every pair of nodes at the beginning of the algorithm;  
+    * For example, to calculate the shortest distance, a valid initialiasing function would could be something like `\n1 n2 -> Just w` where w is the weight of the arc (n1, n2), `\n1 n1 -> Just 0`, and ``\n1 n2 -> Nothing` if the arc does not exist.  
+  * **Argument 1 `Int -> Int -> Int -> State b l2`:**  
+    * The comparison function.  
+    * *Argument 1 `Int`:*  
+      * The starting node of the arc considered by the algorithm.  
+    * *Argument 2 `Int`:*  
+      * The ending node of the arc considered by the algorithm.  
+    * *Argument 2 `Int`:*  
+      * The intermediate node of the arc considered by the algorithm.  
+    * *Result:*  
+      * The updated information, usually computed with a comparison.  
+    * For example, to calculate the shortest distance, a valid comparison function would could be something like `\n1 n2 n3 -> min (weight n1 n2) (weight n1 n3 + weight n3 n2)`.  
+  * **Result:**  
+    * A `State` containing the information produced by the algorithm;  
+    * If the output indicates `break`, then the algorithm ends prematurely.  
 
 <br />  
 

@@ -358,3 +358,53 @@ negCyc = initWGraph [1..3] [((1, 2), -1), ((2, 3), -1), ((3, 1), -1)]
   -- shortestDistance 1 3 negCyc
     -- Just (-2,[(1,2),(2,3)])
 -- But in reality there is no shortest path.
+
+
+-- Shortest paths between all pairs of nodes:
+  -- shortestPathsFully wg5
+    -- fromList [((1,1),Just (0,1)),((1,2),Just (3,2)),((1,3),Just (10,2)),
+    -- ((1,4),Just (12,2)),((1,5),Just (5,5)),((1,6),Just (7,6)),
+    -- ((1,7),Just (5,7)),((2,1),Just (3,1)),((2,2),Just (0,2)),
+    -- ((2,3),Just (7,3)),((2,4),Just (9,3)),((2,5),Just (8,1)),
+    -- ((2,6),Just (10,1)),((2,7),Just (8,1)),((3,1),Just (10,2)),
+    -- ((3,2),Just (7,2)),((3,3),Just (0,3)),((3,4),Just (2,4)),
+    -- ((3,5),Just (6,5)),((3,6),Just (10,4)),((3,7),Just (15,2)),
+    -- ((4,1),Just (12,3)),((4,2),Just (9,3)),((4,3),Just (2,3)),
+    -- ((4,4),Just (0,4)),((4,5),Just (8,3)),((4,6),Just (8,6)),
+    -- ((4,7),Just (15,6)),((5,1),Just (5,1)),((5,2),Just (8,1)),
+    -- ((5,3),Just (6,3)),((5,4),Just (8,3)),((5,5),Just (0,5)),
+    -- ((5,6),Just (12,1)),((5,7),Just (10,1)),((6,1),Just (7,1)),
+    -- ((6,2),Just (10,1)),((6,3),Just (10,4)),((6,4),Just (8,4)),
+    -- ((6,5),Just (12,1)),((6,6),Just (0,6)),((6,7),Just (7,7)),
+    -- ((7,1),Just (5,1)),((7,2),Just (8,1)),((7,3),Just (15,1)),
+    -- ((7,4),Just (15,6)),((7,5),Just (10,1)),((7,6),Just (7,6)),
+    -- ((7,7),Just (0,7))]
+-- From the table, above, we can see from ((1,4),Just (12,2)) that the shortest 
+-- distance from 1 to 4 is 12, and to travel along this path, 
+-- one first travel from 1 to 2. Then we check the entry (2, 4) to see the next
+-- node is 3, and checking the entry (3, 4) gives 4. Therefore the shortest path
+-- from 1 to 4 is 1--2--3--4.
+
+
+-- Maximum paths between all pairs of nodes:
+  -- bandwithFully wg5
+    -- fromList [((1,2),Just (6,6)),((1,3),Just (6,6)),((1,4),Just (7,6)),
+    -- ((1,5),Just (7,6)),((1,6),Just (7,6)),((1,7),Just (7,6)),
+    -- ((2,1),Just (6,3)),((2,3),Just (7,3)),((2,4),Just (6,3)),
+    -- ((2,5),Just (6,3)),((2,6),Just (6,3)),((2,7),Just (6,3)),
+    -- ((3,1),Just (6,5)),((3,2),Just (7,2)),((3,4),Just (6,5)),
+    -- ((3,5),Just (6,5)),((3,6),Just (6,5)),((3,7),Just (6,5)),
+    -- ((4,1),Just (7,6)),((4,2),Just (6,5)),((4,3),Just (6,5)),
+    -- ((4,5),Just (9,5)),((4,6),Just (8,6)),((4,7),Just (7,6)),
+    -- ((5,1),Just (7,4)),((5,2),Just (6,3)),((5,3),Just (6,3)),
+    -- ((5,4),Just (9,4)),((5,6),Just (8,4)),((5,7),Just (7,4)),
+    -- ((6,1),Just (7,1)),((6,2),Just (6,4)),((6,3),Just (6,4)),
+    -- ((6,4),Just (8,4)),((6,5),Just (8,4)),((6,7),Just (7,7)),
+    -- ((7,1),Just (7,6)),((7,2),Just (6,6)),((7,3),Just (6,6)),
+    -- ((7,4),Just (7,6)),((7,5),Just (7,6)),((7,6),Just (7,6))]
+-- From the table, above, we can see from ((1,2),Just (6,6)) that the maximum 
+-- bandwith from 1 to 2 is 6, despite the direct arc only have weight 3.
+-- To travel along this path, one first travel from 1 to 6. 
+-- Then we check the entry (6, 2) to see the next node is 4, 
+-- and checking the entry (4, 2) gives 5, then 3 and finally 2. Thus the path
+-- from 1 to 2 with the maximum bandwith is 1--6--4--5--3--2.

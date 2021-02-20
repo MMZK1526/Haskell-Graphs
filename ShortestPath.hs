@@ -163,22 +163,8 @@ shortestPathsFully graph
 -- the bandwith from start to end, and the next node on this path since start. 
 -- For the paths already reaching the destination, next is itself.
 -- Pre: The graph contains no negative cycles.
-bandWithFully :: (Graph a) => a -> Map (Int, Int) Int
-bandWithFully graph
-  = execState (floydWarshallS starter f graph) M.empty
-  where
-    starter i j
-      = continueWhen (i == j) $ 
-      get >>= put . M.insert (i, j) (maybe 0 id $ weight (i, j) graph)
-    f i j k 
-      = continueWhen (i == j) $ do
-        t <- get
-        let cur = maybe 0 id $ t M.!? (i, j)
-        let new = min (maybe 0 id $ t M.!? (i, k)) (maybe 0 id $ t M.!? (k, j))
-        put $ M.insert (i, j) (max cur new) t
-
-bandWithFully' :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))
-bandWithFully' graph
+bandwithFully :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))
+bandwithFully graph
   = execState (floydWarshallS starter f graph) M.empty
   where
     starter i j
