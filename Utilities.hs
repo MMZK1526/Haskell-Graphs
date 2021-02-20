@@ -16,6 +16,7 @@ import           Data.IntMap.Lazy as IM
   (IntMap(..), delete, empty, insert, update, (!))
 import           Data.Sequence as S (Seq(..), length, singleton, (<|), (><))
 
+
 --------------------------------------------------------------------------------
 -- Loop Break Controls
 --------------------------------------------------------------------------------
@@ -197,8 +198,8 @@ minMaybeOn f ma mb
      then ma 
      else mb
   | isJust ma         = ma
-  | isJust mb         = mb
-  | otherwise         = Nothing
+  | isNothing ma      = mb
+  | otherwise         = ma
 
 -- maxMaybeOn returns the maximum if both arguments are Justs; Nothing if both
 -- arguments are Nothing; the argument that is a Just if one of them is a Just.
@@ -208,6 +209,5 @@ maxMaybeOn f ma mb
   | isJust (ma >> mb) = if liftA2 (>=) (f <$> ma) (f <$> mb) == Just True 
     then ma 
     else mb
-  | isJust ma         = ma
-  | isJust mb         = mb
-  | otherwise         = Nothing
+  | isNothing ma      = mb
+  | otherwise         = ma

@@ -179,6 +179,19 @@ bandwithFully graph
         let new = liftM2 (,) val (snd <$> ik)
         put $ M.insert (i, j) (maxMaybeOn fst cur new) t
 
+-- Computing the closure of a graph.
+-- The result is unweighted.
+graphClosure :: (Graph a) => a -> a
+graphClosure graph
+  = simplify $ execState (floydWarshallS starter f graph) graph
+  where
+    starter = const $ const $ return ()
+    f i j k = do
+      g <- get
+      if isJust (weight (i, k) g) && isJust (weight (k, j) g)
+        then put $ addArcs [(i, j)] g
+        else return ()
+
 -- A State that simulates the bare-bones of Floyd-Warshall Algorithm
 -- See full documentation in README.md (TODO).
 floydWarshallS :: (Graph a, Flaggable l1, Flaggable l2) 

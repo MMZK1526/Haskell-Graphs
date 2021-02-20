@@ -282,7 +282,6 @@ Conducts topological sort on directed acylic graphs (DAG).
 
 * `depthFirstNodes :: Graph a => Int -> a -> [(Int, Int)]`  
   * Traverses the graph using Depth-First Search from a given node and returns the list of passed nodes and their depths.  
-  * The polymorphic type `a` represents the graph.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
@@ -292,8 +291,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Pre:** The given node is in the graph.  
 
 * `depthFirstTree :: Graph a => Int -> a -> a`  
-  * Traverses the graph using Depth-First Search from a given node and returns the corresponding spanning tree;  
-  * The polymorphic type `a` represents the graph.  
+  * Traverses the graph using Depth-First Search from a given node and returns the corresponding spanning tree.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
@@ -304,8 +302,7 @@ Conducts topological sort on directed acylic graphs (DAG).
 
 * `topologicalSort :: Graph a => a -> Maybe [Int]`  
   * Topological sorting of a directed acyclic graph (DAG);  
-  * If the graph contains a cycle, will return Nothing;  
-  * The polymorphic type `a` represents the graph.  
+  * If the graph contains a cycle, will return Nothing.  
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
@@ -313,7 +310,6 @@ Conducts topological sort on directed acylic graphs (DAG).
 
 * `breadthFirstNodes :: Graph a => Int -> a -> [(Int, Int)]`  
   * Traverses the graph using Breadth-First Search from a given node and returns the list of passed nodes and their depths.  
-  * The polymorphic type `a` represents the graph.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
@@ -323,8 +319,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Pre:** The given node is in the graph.  
 
 * `breadthFirstTree :: Graph a => Int -> a -> a`  
-  * Traverses the graph using Breadth-First Search from a given node and returns the corresponding spanning tree;  
-  * The polymorphic type `a` represents the graph.  
+  * Traverses the graph using Breadth-First Search from a given node and returns the corresponding spanning tree.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
@@ -334,8 +329,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Pre:** The given node is in the graph.  
 
 * `isConnected :: Graph a => a -> Bool`  
-  * Test if the undirected graph is connected;  
-  * The polymorphic type `a` represents the graph.  
+  * Test if the undirected graph is connected.  
   * **Argument 1:**
     * The undirected graph.   
   * **Result:**  
@@ -344,16 +338,14 @@ Conducts topological sort on directed acylic graphs (DAG).
   * **Pre:** The graph is undirected. 
 
 * `isStronglyConnected :: Graph a => a -> Bool`  
-  * Test if the (directed) graph is strongly connected;  
-  * The polymorphic type `a` represents the graph.  
+  * Test if the (directed) graph is strongly connected.   
   * **Argument 1:**
     * The undirected graph.  
   * **Result:**  
     * `True` if the graph is strongly connected, otherwise `False`.  
 
 * `distance :: Graph a => Int -> Int -> a -> Maybe Int`  
-  * Returns the (unweighted) distance between two nodes;   
-  * The polymorphic type `a` represents the graph.  
+  * Returns the (unweighted) distance between two nodes.  
   * **Argument 1 `Int`:**
     * The first node.  
   * **Argument 2 `Int`:**
@@ -368,7 +360,6 @@ Conducts topological sort on directed acylic graphs (DAG).
 * `depthFirstS :: (Graph a, Flaggable l1, Flaggable l2) => Int -> a -> (Int -> State b l1) -> (Int -> State b l2) -> State ((Set Int, Seq Int), b) (Terminate ())`  
   * A `State` that simulates Depth-First Search;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search;  
-  * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
   * The polymorphic types `l1` and `l2` represent instances of `Flaggable` (see the secion **Utilities.hs** for clarification).  
   * **Argument 1 `Int`:**  
@@ -405,7 +396,6 @@ Conducts topological sort on directed acylic graphs (DAG).
   * A `State` that simulates Breadth-First Search;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Breadth-First Search;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
-  * The polymorphic type `a` represents the graph;  
   * The polymorphic types `l1` and `l2` represent instances of `Flaggable`.  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
@@ -441,8 +431,7 @@ Conducts topological sort on directed acylic graphs (DAG).
 Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kruskal's Algorithm.  
 
 * `primMST :: Graph a => a -> Maybe a`  
-  * Generates the Minimum Spanning Tree via Prim's Algorithm;  
-  * The polymorphic type `a` represents the graph.  
+  * Generates the Minimum Spanning Tree via Prim's Algorithm.  
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
@@ -451,8 +440,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Pre:** The graph is undirected.  
 
 * `primMSTWeights :: Graph a => a -> Maybe Int`  
-  * Returns the total weight of the Minimum Spanning Tree via Prim's Algorithm;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns the total weight of the Minimum Spanning Tree via Prim's Algorithm.  
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
@@ -461,8 +449,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Pre:** The graph is undirected.  
 
 * `kruskalMST :: Graph a => a -> Maybe a`  
-  * Generates the Minimum Spanning Tree via Kruskal's Algorithm;  
-  * The polymorphic type `a` represents the graph.  
+  * Generates the Minimum Spanning Tree via Kruskal's Algorithm.  
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
@@ -471,8 +458,7 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
   * **Pre:** The graph is undirected.  
 
 * `kruskalMSTWeights :: Graph a => a -> Maybe Int`  
-  * Returns the total weight of the Minimum Spanning Tree via Kruskal's Algorithm;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns the total weight of the Minimum Spanning Tree via Kruskal's Algorithm.  
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
@@ -483,7 +469,6 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
 * `primS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
   * A `State` that simulates Prim's Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the spanning tree;  
-  * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* the spanning tree itself or the total weight of the tree.  
   * The polymorphic type `l` represents an instance of `Flaggable`.  
   * **Argument 1 `a`:**  
@@ -508,7 +493,6 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
 * `kruskalS :: (Graph a, Flaggable l) => a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
   * A `State` that simulates Kruskal's Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the spanning tree;  
-  * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the search.  
   * The polymorphic type `l` represents an instance of `Flaggable`.  
   * **Argument 1 `a`:**  
@@ -540,10 +524,10 @@ Minimum Spanning Tree of weighted undirected graphs with Prim's Algorithm and Kr
 Finds shortest distance and shortest path between nodes of a weighted graph with Dijkstra's Algorithm and A* Algorithm.  
 Finds shortest distances between all pairs of nodes using Floyd-Warshall Algorithm.  
 Finds max bandwith between all distinct pairs of nodes.  
+Produces closure of graphs.  
 
 * `shortestDistances :: (Graph a) => Int -> a -> IntMap Int`  
-  * Returns the shortest distance from a given node to all other reachable nodes in the graph, using Dijkstra's Algorithm;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns the shortest distance from a given node to all other reachable nodes in the graph, using Dijkstra's Algorithm.  
   * **Argument 1 `Int`:**  
     * The starting node.  
   * **Argument 2 `a`:**  
@@ -555,8 +539,7 @@ Finds max bandwith between all distinct pairs of nodes.
   * *Pre:* The graph does not contain negative cycles.  
 
 * `shortestDistance :: (Graph a) => Int -> Int -> a -> Maybe (Int, [(Int, Int)])`  
-  * Returns the shortest distance and the corresponding path between two nodes in the graph, using Dijkstra's Algorithm;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns the shortest distance and the corresponding path between two nodes in the graph, using Dijkstra's Algorithm.  
   * **Argument 1 `Int`:**  
     * The starting node.  
   * **Argument 2 `Int`:**  
@@ -570,8 +553,7 @@ Finds max bandwith between all distinct pairs of nodes.
   * *Pre:* The graph does not contain negative cycles.    
 
 * `shortestDistanceWithHeuristic :: (Graph a) => (Int -> Int) -> Int -> Int -> a -> Maybe (Int, [(Int, Int)])`  
-  * Returns the shortest distance and the corresponding path between two nodes in the graph, using A* Algorithm;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns the shortest distance and the corresponding path between two nodes in the graph, using A* Algorithm.  
   * **Argument 1 `Int -> Int`:**  
     * The heuristic function that estimates the distance from any node to the finishing node.  
   * **Argument 2 `Int`:**  
@@ -588,8 +570,7 @@ Finds max bandwith between all distinct pairs of nodes.
   * *Pre:* The heuristic is consistent, in other words, the heuristic value of the destination is zero, and if there is a path between x and y, h(x) <= h(y) + W(x, y).  
 
 * `shortestDistanceSpanningTree :: (Graph a) => Int -> a -> a`  
-  * Returns a spanning tree that represents the shortest paths from the root to any reachable nodes;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns a spanning tree that represents the shortest paths from the root to any reachable nodes.  
   * **Argument 1 `Int`:**  
     * The starting node.  
   * **Argument 2 `a`:**  
@@ -601,8 +582,7 @@ Finds max bandwith between all distinct pairs of nodes.
 
 * `shortestPathsFully :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))`  
   * Computing the shortest path between all pairs of nodes in a graph using Floyd-Warshall Algorithm;  
-  * Returns the shortest distance and routing table for all pairs of nodes;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns the shortest distance and routing table for all pairs of nodes.  
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
@@ -614,8 +594,7 @@ Finds max bandwith between all distinct pairs of nodes.
 
 * `bandwithFully :: (Graph a) => a -> Map (Int, Int) (Maybe (Int, Int))`  
   * Computing the maximum bandwith between all pairs of nodes in a graph using Floyd-Warshall Algorithm;  
-  * Returns the maximum bandwith and routing table for all pairs of distinct nodes;  
-  * The polymorphic type `a` represents the graph.  
+  * Returns the maximum bandwith and routing table for all pairs of distinct nodes.  
   * **Argument 1:**  
     * The graph.  
   * **Result:**  
@@ -625,10 +604,17 @@ Finds max bandwith between all distinct pairs of nodes.
     * If there is no path, then `Nothing`;  
   * *Pre:* The graph does not contain negative cycles.  
 
+* `graphClosure :: (Graph a) => a -> a`  
+  * Produces the closure of the given graph;  
+  * The closure of a graph G is a simple graph that contains an arc from i to j to there is a path from i to j in G.  
+  * **Argument 1:**  
+    * The graph.
+  * **Result:**  
+    * The closure of the graph.  
+
 * `dijkstraS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> State b (Terminate ())`  
   * A `State` that simulates Dijkstra's Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
-  * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the algorithm;  
   * The polymorphic type `l` represents instance of `Flaggable`.  
   * **Argument 1 `Int`:**  
@@ -658,7 +644,6 @@ Finds max bandwith between all distinct pairs of nodes.
 * `aStarS :: (Graph a, Flaggable l) => Int -> a -> (Int -> Int -> Int -> State b l) -> (Int -> Int) -> State b (Terminate ())`  
   * A `State` that simulates A* Algorithm;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the formation of the shortest path spanning tree;  
-  * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the algorithm;  
   * The polymorphic type `l` represents instance of `Flaggable`.  
   * **Argument 1 `Int`:**  
@@ -690,7 +675,6 @@ Finds max bandwith between all distinct pairs of nodes.
 
 * `floydWarshallS :: (Graph a, Flaggable l1, Flaggable l2) => (Int -> Int -> State b l1) -> (Int -> Int -> Int -> State b l2) -> a -> State b (Terminate ())`
   * A State that simulates the bare-bones of Floyd-Warshall Algorithm;  
-  * The polymorphic type `a` represents the graph;  
   * The polymorphic type `b` represents the information produced by the algorithm;  
   * The polymorphic types `l1` and `l2` represent instances of `Flaggable`.  
   * **Argument 1 `Int -> Int -> State b l1`:**  
@@ -879,7 +863,6 @@ foo n
 
 * `loop :: Monad m => a -> (a -> m (Terminate a)) -> m (Terminate a)`  
   * Iterates a monadic action that takes one aggument indefinitely until the action returns a break flag;  
-  * The polymorphic type `a` represents any type;  
   * The polymorphic type `m` represents any monad;  
   * The polymorphic type `l` represents an instance of `Flaggable`.  
   * **Argument 1 `a`:**  
@@ -945,8 +928,7 @@ This file also contains a data type, `UnionFind`, that is vital in Kruskal's Alg
 ## Miscellaneous  
 * `runWhenJust :: Monad m => Maybe a -> m b -> m ()`  
   * Apply the monadic action if the first argument is not `Nothing`;  
-  * The polymorphic type `m` represents any monad;  
-  * The polymorphic types `a` and `b` represent any types.  
+  * The polymorphic type `m` represents any monad.  
   * **Argument 1 (`Maybe a`):**  
     * A piece of information or `Nothing`.  
   * **Argument 2 (`m b`):**  
@@ -954,6 +936,30 @@ This file also contains a data type, `UnionFind`, that is vital in Kruskal's Alg
   * **Result:**  
     * Simply returns `()` if the Argument 1 is `Nothing`;  
     * Otherwise run the monadic action (that still returns `()` eventually).  
+
+* `minMaybeOn :: (Ord b) => (a -> b) -> Maybe a -> Maybe a -> Maybe a`  
+  * **Argument 1 `a -> b`:**  
+    * A function that renders the following arguments comparable.  
+  * **Argument 2 `Maybe a`:**  
+    * An operand.  
+  * **Argument 3 `Maybe a`:**  
+    * Another operand.  
+  * **Result:**  
+    * If one of the operands is `Nothing`, returns the other one;  
+    * Otherwise returns the one that has the smaller value when applied to Argument 1;  
+    * If the results are the same, Argument 2 is preferred.  
+
+* `maxMaybeOn :: (Ord b) => (a -> b) -> Maybe a -> Maybe a -> Maybe a`  
+  * **Argument 1 `a -> b`:**  
+    * A function that renders the following arguments comparable.  
+  * **Argument 2 `Maybe a`:**  
+    * An operand.  
+  * **Argument 3 `Maybe a`:**  
+    * Another operand.  
+  * **Result:**  
+    * If one of the operands is `Nothing`, returns the other one;  
+    * Otherwise returns the one that has the greater value when applied to Argument 1;  
+    * If the results are the same, Argument 2 is preferred.  
 
 <br />  
 
