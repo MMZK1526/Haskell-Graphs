@@ -8,6 +8,7 @@ import           Data.Maybe
 import           Data.IntMap.Lazy (IntMap(..))
 
 import           Graph
+import           HamiltonCircuit
 import           Search
 import           ShortestPath
 import           SpanningTree
