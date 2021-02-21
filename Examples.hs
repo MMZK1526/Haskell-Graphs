@@ -409,3 +409,28 @@ negCyc = initWGraph [1..3] [((1, 2), -1), ((2, 3), -1), ((3, 1), -1)]
 -- Then we check the entry (6, 2) to see the next node is 4, 
 -- and checking the entry (4, 2) gives 5, then 3 and finally 2. Thus the path
 -- from 1 to 2 with the maximum bandwith is 1--6--4--5--3--2.
+
+
+-------------------------------------------------------------------------------- 
+-- Hamilton Circuit
+-------------------------------------------------------------------------------- 
+
+ham1, ham2 :: GraphList
+ham1
+  = initUWGraph [1..7] 
+  [((1, 2), 1), ((1, 5), 3), ((2, 3), 2), ((2, 4), 1), ((3, 5), 2), ((3, 6), 7),
+   ((3, 7), 3), ((4, 5), 1), ((5, 6), 2), ((6, 7), 7)
+  ]
+ham2
+  = initUWGraph [1..8] 
+  [((1, 2), 4), ((1, 3), 10), ((1, 8), 5), ((2, 3), 11), ((2, 4), 15),
+   ((3, 4), 13), ((3, 5), 3), ((3, 8), 11), ((4, 5), 6), ((4, 6), 5), 
+   ((5, 6), 2), ((5, 7), 5), ((6, 7), 8), ((7, 8), 7)
+  ]
+
+-- The first graph has no Hamiltonian circuit, while the second has a number of.
+-- The algorithm will always pick the one with the shortest total distance:
+  -- hamiltonCircuit ham1
+    -- Nothing
+  -- hamiltonCircuit ham2
+    -- Just (49,[1,8,7,6,4,5,3,2,1])

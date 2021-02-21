@@ -193,7 +193,7 @@ graphClosure graph
         else return ()
 
 -- A State that simulates the bare-bones of Floyd-Warshall Algorithm
--- See full documentation in README.md (TODO).
+-- See full documentation in README.md.
 floydWarshallS :: (Graph a, Flaggable l1, Flaggable l2) 
   => (Int -> Int -> State b l1) 
   -> (Int -> Int -> Int -> State b l2) 

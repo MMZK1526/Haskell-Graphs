@@ -15,6 +15,9 @@ import           Data.Sequence as S (Seq(..), fromList, (><))
 import           Graph
 import           Utilities
 
+-- Find the hamilton circuit of a graph with the shortest total distance.
+-- Nothing if does not exist.
+-- The complexity is worse than exponential, thus of no use for large graphs.
 hamiltonCircuit :: Graph a => a -> Maybe (Int, [Int])
 hamiltonCircuit graph = do
   raw <- fst $ execState (bellmanHeldKarpS starter f fin graph) (Nothing, empty)
@@ -39,6 +42,8 @@ hamiltonCircuit graph = do
       let nxt = liftM2 (,) dis $ liftM2 (><) (snd <$> sub) (Just $ fromList [n])
       put (minMaybeOn id res (minMaybeOn fst res nxt), dict)
 
+-- A State that simulates the bare-bones of Bellman-Held-Karp Algorithm
+-- See full documentation in README.md.
 bellmanHeldKarpS :: (Graph a) 
   => (Int -> Int -> State b ()) 
   -> (Integer -> Integer -> Int -> Int -> State b ()) 
