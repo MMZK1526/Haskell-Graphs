@@ -1,12 +1,11 @@
 # Haskell-Graphs
 Implements graph-related algorithms in `Haskell`.  
-Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms.
-(Just starting, I'll add algorithms as the course goes on)  
+Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms.  
 For a quick guide on the algorithms, check out [Examples.hs](./Examples.hs).  
 For full documentation of the functions, see below.  
 
-Dependencies: `Data.IntMap`, `Data.Sequence`, `Data.Set`.  
-Install the hackages `containers`.  
+Dependencies: `Data.IntMap`, `Data.Map`, `Data.Sequence`, `Data.Set`.  
+Install the hackage `containers`.  
 <br />
 
 # Contents   
