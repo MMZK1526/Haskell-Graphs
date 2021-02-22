@@ -43,7 +43,7 @@ hamiltonCircuit graph = do
       put (minMaybeOn id res (minMaybeOn fst res nxt), dict)
 
 -- A State that simulates the bare-bones of Bellman-Held-Karp Algorithm
--- See full documentation in README.md.
+-- See full documentation in README.md (TODO).
 bellmanHeldKarpS :: (Graph a) 
   => (Int -> Int -> State b ()) 
   -> (Integer -> Integer -> Int -> Int -> State b ()) 
