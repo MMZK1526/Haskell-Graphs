@@ -40,7 +40,7 @@ hamiltonCircuit graph = do
       let sub = join $ dict !? (s', i)
       let dis = liftM2 (+) (fst <$> sub) (weight (i, n) graph)
       let nxt = liftM2 (,) dis $ liftM2 (><) (snd <$> sub) (Just $ fromList [n])
-      put (minMaybeOn id res (minMaybeOn fst res nxt), dict)
+      put (minMaybeOn fst res nxt, dict)
 
 -- A State that simulates the bare-bones of Bellman-Held-Karp Algorithm
 -- See full documentation in README.md (TODO).
