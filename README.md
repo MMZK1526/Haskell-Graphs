@@ -17,7 +17,9 @@ Install the hackage `containers`.
 
 ## 4. [ShortestPath.hs](#shortestpathhs)
 
-## 5. [Utilities.hs](#utilitieshs)  
+## 5. [HamiltonCircuit.hs]($hamiltoncircuiths)
+
+## 6. [Utilities.hs](#utilitieshs)  
   * ### [Monadic Loop Control](#monadic-loop-control-1)
   * ### [Union Find](#union-find-1)  
   * ### [Miscellaneous](#miscellaneous-1)  
@@ -693,6 +695,59 @@ Produces closure of graphs.
   * **Result:**  
     * A `State` containing the information produced by the algorithm;  
     * If the output indicates `break`, then the algorithm ends prematurely.  
+
+<br />  
+
+## [Back to Title](#Haskell-Graphs)  
+<br />
+
+# [HamiltonCircuit.hs](./HamiltonCircuit.hs)
+Finds Hamiltonian Circuit of graph, if exists.  
+  
+* `hamiltonCircuit :: Graph a => a -> Maybe (Int, [Int])`
+  * Finds the Hamiltonian Circuit with shortest total distance.  
+  * The algorithm has super-exponential complexity, thus impractical with big graphs.  
+  * **Argument 1 `a`:**  
+    * The graph.  
+  * **Result:**  
+    * `Nothing` if a Hamiltonian Circuit does not exist;  
+    * `Just (distance, path)` otherwise, where `path` is of type `[Int]` containing the nodes in the order of the shortest Hamiltonian Circuit;  
+    * `distance` is the total distance of the path.  
+
+* `bellmanHeldKarpS :: (Graph a) => (Int -> Int -> State b ()) -> (Integer -> Integer -> Int -> Int -> State b ()) -> (Integer -> Int -> Int -> State b ()) -> a -> State b ()`  
+  * A State that simulates the bare-bones of Bellman-Held-Karp Algorithm;  
+  * This function is convoluted and is not necessary unless you need to do custom actions during the algorithm;  
+  * The polymorphic type `b` represents the information produced by the search;  
+  * It must contain both the data stored for dynamic programming **AND** the final result;  
+  * Note that this one does not have any `Terminate` feature, because I'm quite done with it.  
+  * **Argument 1 `Int -> Int -> State b ()`:**  
+    * A `State` that updates the information during initialisation, that is, the data corresponding to the empty subset in the algorithm.  
+    * *Argument 1 `Int`:*  
+      * The starting node, chosen by the mother function.  
+    * *Argument 2 `Int`:*  
+      * The current node during iteration through the rest of the nodes.  
+  * **Argument 2 `Integer -> Integer -> Int -> Int -> State b ()`:**  
+    * A `State` that updates the information during the dynamic programming part of the algorithm.  
+    * *Argument 1 `Integer`:*  
+      * The current subset.  
+    * *Argument 2 `Integer`:*  
+      * The current subset without one of its element.  
+    * *Argument 3 `Int`:*  
+      * The current node being considered (which is not in the subset).  
+    * *Argument 4 `Int`:*  
+      * The node being removed from the subset in Argument 1.  
+  * **Argument 3 `Integer -> Int -> Int -> State b ()`:**  
+    * A `State` that calculates the final result based on all the data gathered through dynamic programming.  
+    * *Argument 1 `Integer`:*  
+      * The current subset, which is the full set of nodes except the starting node, minus one of its element.  
+    * *Argument 2 `Int`:*  
+      * The starting node chosen by the mother function.  
+    * *Argument 3 `Int`:*  
+      * The node removed from the full set in Argument 1.  
+  * **Argument 4 `a`:**  
+    * The graph.  
+  * **Result:**  
+    * A state that stores the information, including both the desired result and all the data computed through the dynamic programming part.  
 
 <br />  
 
