@@ -17,7 +17,7 @@ Install the hackage `containers`.
 
 ## 4. [ShortestPath.hs](#shortestpathhs)
 
-## 5. [HamiltonCircuit.hs]($hamiltoncircuiths)
+## 5. [HamiltonCircuit.hs](#hamiltoncircuiths)
 
 ## 6. [Utilities.hs](#utilitieshs)  
   * ### [Monadic Loop Control](#monadic-loop-control-1)
