@@ -362,7 +362,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * A `State` that simulates Depth-First Search;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
-  * The polymorphic types `l1` and `l2` represent instances of `Flaggable` (see the secion **Utilities.hs** for clarification).  
+  * The polymorphic types `l1` and `l2` represent instances of `Flaggable` (see the secion **[Utilities.hs](#utilitieshs)** for clarification).  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
