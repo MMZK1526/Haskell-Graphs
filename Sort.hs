@@ -49,3 +49,31 @@ mergeSort arr
           vj <- readArray arrST2 j
           writeArray arrST k vj
         return ()
+
+quickSort :: forall a. (Ord a) => Vec1D a -> Vec1D a
+quickSort arr
+  = runST $ do
+    arrST <- thaw arr :: ST s (STVec1D s a)
+    let (lb, ub) = bounds arr
+    quickSort' arrST lb (ub + 1)
+    freeze arrST
+    where
+      quickSort' arrST inf sup
+        | inf + 1 >= sup = return ()
+        | otherwise      = do
+          pivot <- readArray arrST inf
+          (i, _) <- loop (inf, sup) $ \(i, j) ->
+            breakWhen (i + 1 == j) (i, j) $ do
+              vi <- readArray arrST (i + 1)
+              if vi > pivot
+                then do
+                  vj <- readArray arrST (j - 1)
+                  writeArray arrST (i + 1) vj
+                  writeArray arrST (j - 1) vi
+                  return (i, j - 1)
+               else return (i + 1, j)
+          vi <- readArray arrST i
+          writeArray arrST i pivot
+          writeArray arrST inf vi
+          quickSort' arrST inf i
+          quickSort' arrST (i + 1) sup
