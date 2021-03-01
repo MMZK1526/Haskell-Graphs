@@ -13,6 +13,7 @@ import           Search
 import           ShortestPath
 import           Sort
 import           SpanningTree
+import           Utilities
 
 
 -------------------------------------------------------------------------------- 
@@ -435,3 +436,19 @@ ham2
     -- Nothing
   -- hamiltonCircuit ham2
     -- Just (49,[1,8,7,6,4,5,3,2,1])
+
+
+-------------------------------------------------------------------------------- 
+-- Sort
+-------------------------------------------------------------------------------- 
+
+-- I don't think this requires much explanation...
+
+arr :: Vec1D Int
+arr = newVec1D [7,5,2,6,4,1,3]
+
+quickSorted :: Vec1D Int
+quickSorted = quickSort arr
+
+mergeSorted :: Vec1D Int
+mergeSorted = mergeSort arr
