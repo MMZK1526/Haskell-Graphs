@@ -72,6 +72,7 @@ breakUpon _
   = continueLoop
 
 -- Runs the monadic action if the predicate is true; otherwise continueLoop.
+-- The result is discarded.
 continueWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
 continueWhen_ True _
   = continueLoop
@@ -79,11 +80,19 @@ continueWhen_ _ m
   = m >>= return . flag
 
 -- Runs the monadic action if the predicate is true; otherwise breakLoop.
+-- The result is discarded.
 breakWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
 breakWhen_ True _
   = breakLoop
 breakWhen_ _ m
   = m >>= return . flag
+
+-- Runs the monadic action if the predicate is true; otherwise breakLoop.
+-- The result is retained.
+breakWhen :: (Monad m) => Bool -> a -> m a -> m (Terminate a)
+breakWhen True a _
+  = returnBreak a 
+breakWhen _ _ m = m >>= returnContinue
 
 -- runUnlessBreak returns (breakFlag) when the input indicates termination, 
 -- and applies the monadic action if it does not terminate.
@@ -119,11 +128,11 @@ loop_ m
 
 -- loop iterates the terminable monadic action until it returns breakFlag, 
 -- but does not discard the result.
-loop :: Monad m => a -> (a -> m (Terminate a)) -> m (Terminate a)
+loop :: Monad m => a -> (a -> m (Terminate a)) -> m a
 loop i f = do
   b <- f i
   if isBreaking b
-    then return b
+    then return i 
     else loop (information b) f
 
 

@@ -880,6 +880,19 @@ foo n
     * If the predicate is `True`, produces `breakLoop`;  
     * If the predicate is `False`, runs the monadic action, discarding the result.  
 
+* `breakWhen :: (Monad m) => Bool -> a -> m a -> m (Terminate a)`  
+  * Similar to `breakWhen_`, but retains the result;  
+  * The polymorphic type `m` represents any monad;  
+  * **Argument 1 `Bool`:**  
+    * The predicate.  
+  * **Argument 2 `a`:**  
+    * The default return value.  
+  * **Argument 2 `m a`:**  
+    * A monadic action.  
+  * **Result:**  
+    * If the predicate is `True`, produces the default return value wrapped in a breaking flag;  
+    * If the predicate is `False`, runs the monadic action and retaining the result.  
+
 * `runUnlessBreak :: (Monad m, Flaggable l1, Flaggable l2) => l1 -> m l2 -> m (Terminate ())`
   * The polymorphic type `m` represents any monad;  
   * The polymorphic types `l1` and `l2` represent instances of `Flaggable`.  
@@ -915,7 +928,7 @@ foo n
     * A new monadic action formed by iterating the argument until break;  
     * If the function terminates, then it always produces `breakLoop` since it only terminates from a break flag.  
 
-* `loop :: Monad m => a -> (a -> m (Terminate a)) -> m (Terminate a)`  
+* `loop :: Monad m => a -> (a -> m (Terminate a)) -> m a`  
   * Iterates a monadic action that takes one aggument indefinitely until the action returns a break flag;  
   * The polymorphic type `m` represents any monad;  
   * The polymorphic type `l` represents an instance of `Flaggable`.  
@@ -924,8 +937,7 @@ foo n
   * **Argument 2 `a -> m (Terminate a)`:**  
     * A monadic action.  
   * **Result:**  
-    * A new monadic action formed by iterating the second argument until break;  
-    * If the function terminates, then it always produces a result wrapped in `Terminate` that represents break (*i.e.* `Left _`).  
+    * A new monadic action formed by iterating the second argument until break.  
 
 ## Union Find  
 This file also contains a data type, `UnionFind`, that is vital in Kruskal's Algorithm.  
