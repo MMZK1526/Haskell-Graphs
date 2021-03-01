@@ -22,6 +22,7 @@ Install the hackage `containers`.
 ## 6. [Utilities.hs](#utilitieshs)  
   * ### [Monadic Loop Control](#monadic-loop-control-1)
   * ### [Union Find](#union-find-1)  
+  * ### [Array](#array-1)
   * ### [Miscellaneous](#miscellaneous-1)  
 <br />
 
@@ -990,6 +991,47 @@ This file also contains a data type, `UnionFind`, that is vital in Kruskal's Alg
     * An updated `UnionFind` where the two original equivalence classes corresponding to the given integers are merged. One of the original representatives is picked to be the representative of the bigger equivalence class.
   * **Pre:** The integers must belong to some of the equivalence classes;  
   * **Pre:** The integers must not belong to the same equivalence class.  
+
+## Array 
+Some helper functions dealing with immutable (`Array`) and mutable (`STArray`) arrays.  
+
+* `type Vec1D e`
+  * An alias for `Array Int e`, representing an immutable `Int`-indexed array.  
+
+* `type STVec1D s e`  
+  * An alias for `STArray s Int e`, representing a mutable `Int`-indexed array.  
+
+* `newVec1D :: Foldable f => f a -> Vec1D a`  
+  * Initialises a `Vec1D` from a `Foldable`;  
+  * The polymorphic type `f` represents any instance of `Foldable`;  
+  * **Argument 1:**  
+    * A `Foldable`.
+  * **Result:**  
+    * A `Vec1D` array containing the elements in the `Foldable`, indexed from 0.  
+
+* `newSTVec1D :: Foldable f => f a -> ST s (STVec1D s a)`  
+  * Initialises a `STVec1D` from a `Foldable`;  
+  * The polymorphic type `f` represents any instance of `Foldable`;  
+  * **Argument 1:**  
+    * A `Foldable`.
+  * **Result:**  
+    * A `Vec1D` mutable array containing the elements in the `Foldable`, indexed from 0.  
+
+* `newArrHeap :: Foldable f => f a -> Vec1D a`  
+  * Initialises a `Vec1D` from a `Foldable`;  
+  * The polymorphic type `f` represents any instance of `Foldable`;  
+  * **Argument 1:**  
+    * A `Foldable`.
+  * **Result:**  
+    * A `Vec1D` array containing the elements in the `Foldable`, indexed from 1.  
+
+* `newSTArrHeap :: Foldable f => f a -> ST s (STVec1D s a)`  
+  * Initialises a `STVec1D` from a `Foldable`;  
+  * The polymorphic type `f` represents any instance of `Foldable`;  
+  * **Argument 1:**  
+    * A `Foldable`.
+  * **Result:**  
+    * A `Vec1D` mutable array containing the elements in the `Foldable`, indexed from 1.  
 
 ## Miscellaneous  
 * `runWhenJust :: Monad m => Maybe a -> m b -> m ()`  
