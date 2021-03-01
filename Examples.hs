@@ -11,6 +11,7 @@ import           Graph
 import           HamiltonCircuit
 import           Search
 import           ShortestPath
+import           Sort
 import           SpanningTree
 
 

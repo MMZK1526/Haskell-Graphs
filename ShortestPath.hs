@@ -119,7 +119,7 @@ aStarS root graph fun heuristic = do
       ) IM.empty
     aStar'  = loop_ $ do
       ((v, f), t) <- get
-      breakWhen (IM.null f) $ do
+      breakWhen_ (IM.null f) $ do
         let minN     = minimumBy (comparator f) (keys f)
         let (d, n)   = f ! minN
         let adj      = neighbours minN graph
@@ -128,7 +128,7 @@ aStarS root graph fun heuristic = do
         put ((v', execState (forM_ adj $ \s -> do
           fringe <- get
           let newW = fromJust $ weight (minN, s) graph
-          continueWhen (S.member s v') $ if IM.notMember s fringe
+          continueWhen_ (S.member s v') $ if IM.notMember s fringe
             then put $ IM.insert s (d + newW, minN) fringe
             else put $ IM.insert s (min (fringe ! s) (d + newW, minN)) fringe
           ) $ delete minN f), t')
@@ -150,7 +150,7 @@ shortestPathsFully graph
         put . M.insert (i, j) ((, j) <$> (weight (i, j) graph))
       | otherwise = get >>= put . M.insert (i, i) (Just (0, i))
     f i j k =
-      continueWhen (i == k) $ do
+      continueWhen_ (i == k) $ do
         t <- get
         let cur = join $ t M.!? (i, j)
         let ik  = join $ t M.!? (i, k)
@@ -168,10 +168,10 @@ bandwithFully graph
   = execState (floydWarshallS starter f graph) M.empty
   where
     starter i j
-      = continueWhen (i == j) $ 
+      = continueWhen_ (i == j) $ 
       get >>= put . M.insert (i, j) ((, j) <$> (weight (i, j) graph))
     f i j k 
-      = continueWhen (i == j || i == k) $ do
+      = continueWhen_ (i == j || i == k) $ do
         t <- get
         let cur = join $ t M.!? (i, j)
         let ik  = join $ t M.!? (i, k)

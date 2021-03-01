@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module Utilities where
@@ -5,11 +6,13 @@ module Utilities where
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
 import           Control.Applicative
+import           Control.Monad.ST
 import           Control.Monad.Trans.State
+import           Data.Array hiding ((!))
+import           Data.Array.ST
 import           Data.Either (Either(..), isLeft, isRight)
 import           Data.Foldable (forM_, toList)
 import           Data.Maybe (isJust, isNothing)
-import           Prelude hiding (length)
 
 -- Require installation
 import           Data.IntMap.Lazy as IM 
@@ -69,17 +72,17 @@ breakUpon _
   = continueLoop
 
 -- Runs the monadic action if the predicate is true; otherwise continueLoop.
-continueWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
-continueWhen True _
+continueWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
+continueWhen_ True _
   = continueLoop
-continueWhen _ m
+continueWhen_ _ m
   = m >>= return . flag
 
 -- Runs the monadic action if the predicate is true; otherwise breakLoop.
-breakWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
-breakWhen True _
+breakWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
+breakWhen_ True _
   = breakLoop
-breakWhen _ m
+breakWhen_ _ m
   = m >>= return . flag
 
 -- runUnlessBreak returns (breakFlag) when the input indicates termination, 
@@ -88,7 +91,7 @@ runUnlessBreak :: (Monad m, Flaggable l1, Flaggable l2)
   => l1 
   -> m l2 
   -> m (Terminate ())
-runUnlessBreak = breakWhen . isBreaking
+runUnlessBreak = breakWhen_ . isBreaking
 
 -- forMBreak_ maps elements of a foldable to a terminable monadic action, 
 -- and breaks the iteration when the action indicates termination.
@@ -106,16 +109,16 @@ forMBreak_ xs m
     forMB_ [] m
       = continueLoop
     forMB_ (x : xs) m 
-      = m x >>= flip breakWhen (forMB_ xs m) . isBreaking
+      = m x >>= flip breakWhen_ (forMB_ xs m) . isBreaking
 
 -- loop_ iterates the terminable monadic action until it returns breakFlag, 
--- discarding the results wrapped in the Terminate.
+-- discarding the result wrapped in the Terminate.
 loop_ :: (Monad m, Flaggable l) => m l -> m (Terminate ())
 loop_ m 
-  = m >>= \s -> breakWhen (isBreaking s) (loop_ m)
+  = m >>= \s -> breakWhen_ (isBreaking s) (loop_ m)
 
 -- loop iterates the terminable monadic action until it returns breakFlag, 
--- but does not discard the results.
+-- but does not discard the result.
 loop :: Monad m => a -> (a -> m (Terminate a)) -> m (Terminate a)
 loop i f = do
   b <- f i
@@ -171,11 +174,28 @@ unionFind i j uf@(UF im sets)
     replace s r 
       = forM_ s $ \e -> get >>= put . insert e r
     im' 
-      | length si < length sj = execState (replace si j') im
-      | otherwise             = execState (replace sj i') im
+      | S.length si < S.length sj = execState (replace si j') im
+      | otherwise                 = execState (replace sj i') im
     sets'
-      | length si < length sj = insert j (si >< sj) (delete i sets)
-      | otherwise             = insert i (si >< sj) (delete j sets)
+      | S.length si < S.length sj = insert j (si >< sj) (delete i sets)
+      | otherwise                 = insert i (si >< sj) (delete j sets)
+
+
+--------------------------------------------------------------------------------
+-- Array
+--------------------------------------------------------------------------------
+
+type Vec1D e     = Array Int e
+type STVec1D s e = STArray s Int e
+
+-- Create an immutable array from a Foldable
+newVec1D :: Foldable f => f a -> Vec1D a
+newVec1D xs
+  = array (0, Prelude.length xs - 1) $ zip [0..] (toList xs)
+
+-- Create a mutable array from a Foldable
+newSTVec1D :: Foldable f => f a -> ST s (STVec1D s a)
+newSTVec1D = thaw . newVec1D
 
 
 --------------------------------------------------------------------------------

@@ -72,7 +72,7 @@ primS graph fun
       ) empty
     prim'   = forMBreak_ [2..sz] $ \_ -> do
     ((k, f), t) <- get
-    breakWhen (IM.null f) $ do
+    breakWhen_ (IM.null f) $ do
       let minN     = minimumBy ((. (f !)) . compare . (f !)) (keys f)
       let (w, n)   = f ! minN
       let adj      = neighbours minN graph
@@ -81,7 +81,7 @@ primS graph fun
       runUnlessBreak b' $ put ((k', execState (forM_ adj $ \s -> do
         fringe <- get
         let newW = fromJust $ weight (minN, s) graph
-        continueWhen (S.member s k') $ if IM.notMember s fringe
+        continueWhen_ (S.member s k') $ if IM.notMember s fringe
           then put $ IM.insert s (newW, minN) fringe
           else put $ IM.insert s (min (fringe ! s) (newW, minN)) fringe
         ) $ delete minN f), t')
@@ -135,7 +135,7 @@ kruskalS graph fun = do
     uf       = initUF $ nodes graph
     kruskal' = loop_ $ do
       ((acc, arcs, uf), t) <- get
-      breakWhen (acc == sz - 1 || Prelude.null arcs) $ do
+      breakWhen_ (acc == sz - 1 || Prelude.null arcs) $ do
         let (((n, n'), w) : as) = arcs
         if equiv n n' uf
           then put ((acc, as, uf), t) >> continueLoop

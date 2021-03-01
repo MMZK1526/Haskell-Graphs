@@ -42,7 +42,7 @@ depthFirstS x graph allowCycle fEnter fExit
   where
     dfs b x = runUnlessBreak b $ do
       ((nIn, nOut), t) <- get
-      continueWhen (S.member x nIn) $ do
+      continueWhen_ (S.member x nIn) $ do
         let (b', res) = runState (fEnter x) t
         put ((S.insert x nIn, nOut), res)
         b' <- forMBreak_ (neighbours x graph) $ \y -> if S.member y nIn
@@ -132,7 +132,7 @@ breadthFirstS x graph fEnter fExit = do
           let (b', res) = runState (fExit q) t
           put ((nIn, qs), res)
           b' <- forMBreak_ (neighbours q graph) 
-            $ \x -> runUnlessBreak b' $ continueWhen (S.member x nIn) $ do 
+            $ \x -> runUnlessBreak b' $ continueWhen_ (S.member x nIn) $ do 
             ((nIn, qs), t) <- get
             let (b', res) = runState (fEnter x) t
             put ((S.insert x nIn, qs |> x), res)
@@ -209,7 +209,7 @@ isStronglyConnected graph
     -- information, which means it can lead to the root.
     bfs x     = breadthFirstS x graph (\n -> do
       ns <- get
-      breakWhen (S.member n ns) $ put (S.insert n ns) >> continueLoop
+      breakWhen_ (S.member n ns) $ put (S.insert n ns) >> continueLoop
       ) (const continueLoop)
       
 -- Returns the (unweighted) distance between two nodes;  

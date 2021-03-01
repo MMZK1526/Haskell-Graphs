@@ -787,7 +787,7 @@ With the tools in this file, we can rewrite the function above as:
 foo n
   = snd $ execState (loop_ (do 
       (i, sum) <- get
-      breakWhen (i > n) $ put (i + 1, sum + i)
+      breakWhen_ (i > n) $ put (i + 1, sum + i)
       )) (0, 0)
 ```
 
@@ -858,7 +858,7 @@ foo n
   * **Result:**  
     * A pure flag according to the predicate.  
 
-* `continueWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())`
+* `continueWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())`  
   * The polymorphic type `m` represents any monad;  
   * The polymorphic type `l` represents an instance of `Flaggable`, i*i.e.* any type.  
   * **Argument 1 `Bool`:**  
@@ -867,9 +867,9 @@ foo n
     * A monadic action that returns a `Flaggable`.  
   * **Result:**  
     * If the predicate is `True`, produces `continueLoop`;  
-    * If the predicate is `False`, runs the monadic action.  
+    * If the predicate is `False`, runs the monadic action, discarding the result.  
 
-* `breakWhen :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())`
+* `breakWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())`  
   * The polymorphic type `m` represents any monad;  
   * The polymorphic type `l` represents an instance of `Flaggable`, *i.e.* any type.  
   * **Argument 1 `Bool`:**  
@@ -878,7 +878,7 @@ foo n
     * A monadic action that returns a `Flaggable`.  
   * **Result:**  
     * If the predicate is `True`, produces `breakLoop`;  
-    * If the predicate is `False`, runs the monadic action.  
+    * If the predicate is `False`, runs the monadic action, discarding the result.  
 
 * `runUnlessBreak :: (Monad m, Flaggable l1, Flaggable l2) => l1 -> m l2 -> m (Terminate ())`
   * The polymorphic type `m` represents any monad;  
@@ -890,7 +890,7 @@ foo n
   * **Result:**  
     * If the `Flaggable` indicates break, produces `breakLoop`;  
     * Otherwise the function runs the monadic action;  
-    * In otherwords, this function behaves like `breakWhen` except with the "predicate" in the form of a `Flaggable`.  
+    * In otherwords, this function behaves like `breakWhen_` except with the "predicate" in the form of a `Flaggable`.  
 
 * `forMBreak_ :: (Foldable f, Monad m, Flaggable l) => f a -> (a -> m l) -> m (Terminate ())`  
   * Applies all elements of the `Foldable` to the monadic action in sequential order, disgarding the intermediate results;  
