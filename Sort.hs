@@ -7,7 +7,6 @@ module Sort where
 
 import           Control.Monad
 import           Control.Monad.ST
-import           Control.Monad.Trans.State
 import           Data.Array
 import           Data.Array.ST
 import           Data.Maybe
@@ -28,12 +27,8 @@ mergeSort arr
         let mid = (inf + sup) `div` 2
         arrST1 <- newArray_ (inf, mid - 1) :: ST s (STVec1D s a)
         arrST2 <- newArray_ (mid, sup - 1) :: ST s (STVec1D s a)
-        forM_ [inf..(mid - 1)] $ \i -> do
-          v <- readArray arrST i
-          writeArray arrST1 i v
-        forM_ [mid..(sup - 1)] $ \j -> do
-          v <- readArray arrST j
-          writeArray arrST2 j v
+        forM_ [inf..(mid - 1)] $ \i -> readArray arrST i >>= writeArray arrST1 i
+        forM_ [mid..(sup - 1)] $ \j -> readArray arrST j >>= writeArray arrST2 j
         mergeSort' arrST1 inf mid
         mergeSort' arrST2 mid sup
         (i, j, k) <- loop (inf, mid, inf) $ \(i, j, k) -> 
@@ -43,13 +38,10 @@ mergeSort arr
             if vi > vj
               then writeArray arrST k vj >> return (i, j + 1, k + 1)
               else writeArray arrST k vi >> return (i + 1, j, k + 1)
-        forM_ (zip [i..(mid - 1)] [k..]) $ \(i, k) -> do
-          vi <- readArray arrST1 i
-          writeArray arrST k vi
+        forM_ (zip [i..(mid - 1)] [k..]) $ \(i, k) ->
+          readArray arrST1 i >>= writeArray arrST k
         forM_ (zip [j..(sup - 1)] [k..]) $ \(j, k) -> do
-          vj <- readArray arrST2 j
-          writeArray arrST k vj
-        return ()
+          readArray arrST2 j >>= writeArray arrST k
 
 quickSort :: forall a. (Ord a) => Vec1D a -> Vec1D a
 quickSort arr
@@ -62,7 +54,7 @@ quickSort arr
       quickSort' arrST inf sup
         | inf + 1 >= sup = return ()
         | otherwise      = do
-          pivot <- readArray arrST inf
+          pivot  <- readArray arrST inf
           (i, _) <- loop (inf, sup) $ \(i, j) ->
             breakWhen (i + 1 == j) (i, j) $ do
               vi <- readArray arrST (i + 1)
