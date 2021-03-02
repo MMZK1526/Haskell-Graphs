@@ -1033,6 +1033,20 @@ Some helper functions dealing with immutable (`Array`) and mutable (`STArray`) a
   * **Result:**  
     * A `Vec1D` mutable array containing the elements in the `Foldable`, indexed from 1.  
 
+* `readArrayMaybe :: (MArray a e m) => a Int e -> Int -> m (Maybe e)`  
+  * Read from an `Int`-indexed mutable array and wrap the result in a `Just`;  
+  * If the given index is out of bound, returns `Nothing`;  
+  * The polymorphic type `a` represents a mutable array;  
+  * The polymorphic type `e` represents the content type of the array;  
+  * The polymorphic type `m` represents the monad that wraps the array.  
+  * **Argumment 1 `a Int e`:**  
+    * The `Int`-indexed array.  
+  * **Argument 2 `Int`:**  
+    * The index.  
+  * **Result:**  
+    * If the index is out of bound, `return Nothing`;  
+    * Otherwise, returns the value in a `Just`, then wrapped in the monad encapsulating the mutable array.  
+
 ## Miscellaneous  
 * `runWhenJust :: Monad m => Maybe a -> m b -> m ()`  
   * Apply the monadic action if the first argument is not `Nothing`;  

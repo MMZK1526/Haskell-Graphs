@@ -197,26 +197,27 @@ unionFind i j uf@(UF im sets)
 type Vec1D e     = Array Int e
 type STVec1D s e = STArray s Int e
 
--- Create an immutable array from a Foldable.
+-- Creates an immutable array from a Foldable.
 newVec1D :: Foldable f => f a -> Vec1D a
 newVec1D xs
   = array (0, Prelude.length xs - 1) $ zip [0..] (toList xs)
 
--- Create a mutable array from a Foldable.
+-- Creates a mutable array from a Foldable.
 newSTVec1D :: Foldable f => f a -> ST s (STVec1D s a)
 newSTVec1D = thaw . newVec1D
 
--- Create an immutable array heap from a Foldable; note that the only difference
+-- Creates an immutable array heap from a Foldable; note that the only difference
 -- is that a heap representing in an array is indexed from 1.
 newArrHeap :: Foldable f => f a -> Vec1D a
 newArrHeap xs
   = array (1, Prelude.length xs) $ zip [1..] (toList xs)
 
--- Create a mutable array heap from a Foldable.
+-- Creates a mutable array heap from a Foldable.
 newSTArrHeap :: Foldable f => f a -> ST s (STVec1D s a)
 newSTArrHeap = thaw . newArrHeap
 
-readArrayMaybe :: STArray s Int e -> Int -> ST s (Maybe e)
+-- Read a mutable array and wrap the result with Maybe.
+readArrayMaybe :: (MArray a e m) => a Int e -> Int -> m (Maybe e)
 readArrayMaybe arrST index = do
   (inf, sup) <- getBounds arrST
   if index > sup || index < inf 

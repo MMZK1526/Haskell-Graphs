@@ -452,3 +452,6 @@ quickSorted = quickSort arr
 
 mergeSorted :: Vec1D Int
 mergeSorted = mergeSort arr
+
+heapSorted :: Vec1D Int
+heapSorted = heapSort arr
