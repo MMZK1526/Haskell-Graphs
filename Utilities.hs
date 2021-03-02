@@ -210,12 +210,18 @@ newSTVec1D = thaw . newVec1D
 -- is that a heap representing in an array is indexed from 1.
 newArrHeap :: Foldable f => f a -> Vec1D a
 newArrHeap xs
-  = array (1, Prelude.length xs) $ zip [0..] (toList xs)
+  = array (1, Prelude.length xs) $ zip [1..] (toList xs)
 
 -- Create a mutable array heap from a Foldable.
 newSTArrHeap :: Foldable f => f a -> ST s (STVec1D s a)
 newSTArrHeap = thaw . newArrHeap
 
+readArrayMaybe :: STArray s Int e -> Int -> ST s (Maybe e)
+readArrayMaybe arrST index = do
+  (inf, sup) <- getBounds arrST
+  if index > sup || index < inf 
+    then return Nothing
+    else readArray arrST index >>= return . Just
 
 --------------------------------------------------------------------------------
 -- Miscellaneous

@@ -10,6 +10,7 @@ import           Control.Monad.ST
 import           Control.Monad.Trans.State
 import           Data.Array
 import           Data.Array.ST
+import           Data.Maybe
 
 import           Utilities
 
@@ -77,3 +78,60 @@ quickSort arr
           writeArray arrST inf vi
           quickSort' arrST inf i
           quickSort' arrST (i + 1) sup
+
+fixMaxHeap :: (Ord a) => STVec1D s a -> Int -> Int -> ST s ()
+fixMaxHeap hST r lim = do
+  breakWhen_ (2 * r > lim) $ do
+    vr    <- readArray hST r
+    vlc   <- readArray hST (2 * r)
+    mbvrc <- readArrayMaybe hST (2 * r + 1)
+    if (2 * r + 1 > lim) || (fromJust mbvrc <= vlc)
+      then if vr < vlc
+        then do
+          writeArray hST r vlc
+          writeArray hST (2 * r) vr
+          fixMaxHeap hST (2 * r) lim
+        else return ()
+      else if vr < fromJust mbvrc
+        then do
+          writeArray hST r (fromJust mbvrc)
+          writeArray hST (2 * r + 1) vr
+          fixMaxHeap hST (2 * r + 1) lim
+        else return ()
+  return ()
+
+toMaxHeap :: (Ord a) => STVec1D s a -> ST s ()
+toMaxHeap hST
+  = toMaxHeap' hST 1
+  where
+    toMaxHeap' hST r = do
+      (_, sup) <- getBounds hST
+      breakWhen_ (r > sup) $ do
+        toMaxHeap' hST (2 * r)
+        toMaxHeap' hST (2 * r + 1)
+        fixMaxHeap hST r sup
+      return ()
+
+heapSort :: forall a. (Ord a) => Vec1D a -> Vec1D a
+heapSort arr = runST $ do
+  let (lb, ub) = bounds arr
+  let len      = ub - lb + 1
+  hST <- newHeapFromArray lb ub
+  toMaxHeap hST
+  heapSort' hST len
+  freeze hST
+  where
+    newHeapFromArray :: Int -> Int -> ST s (STVec1D s a)
+    newHeapFromArray lb ub = do
+      hST <- newArray_ (1, ub - lb + 1)
+      forM_ [1..(ub - lb + 1)] $ \i -> writeArray hST i $ arr ! (i - 1 + lb)
+      return hST
+    heapSort' hST 1 
+      = return ()
+    heapSort' hST k = do
+      v1 <- readArray hST 1
+      vk <- readArray hST k
+      writeArray hST 1 vk
+      writeArray hST k v1
+      fixMaxHeap hST 1 (k - 1)
+      heapSort' hST (k - 1)
