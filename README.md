@@ -19,7 +19,9 @@ Install the hackage `containers`.
 
 ## 5. [HamiltonCircuit.hs](#hamiltoncircuiths)
 
-## 6. [Utilities.hs](#utilitieshs)  
+## 6. [Sort.hs](#sorths)
+
+## 7. [Utilities.hs](#utilitieshs)  
   * ### [Monadic Loop Control](#monadic-loop-control-1)
   * ### [Union Find](#union-find-1)  
   * ### [Array](#array-1)
@@ -363,7 +365,7 @@ Conducts topological sort on directed acylic graphs (DAG).
   * A `State` that simulates Depth-First Search;  
   * This function is convoluted and is not necessary unless you need to do custom actions during the Depth-First Search;  
   * The polymorphic type `b` represents the information produced by the search, *e.g.* a spanning tree or a list of nodes in some specific order;  
-  * The polymorphic types `l1` and `l2` represent instances of `Flaggable` (see the secion **[Utilities.hs](#utilitieshs)** for clarification).  
+  * The polymorphic types `l1` and `l2` represent instances of `Flaggable` (see the section **[Utilities.hs](#monadic-loop-control-1)** for clarification).  
   * **Argument 1 `Int`:**  
     * The root node for the search.  
   * **Argument 2 `a`:**  
@@ -703,6 +705,7 @@ Produces closure of graphs.
 <br />
 
 # [HamiltonCircuit.hs](./HamiltonCircuit.hs)
+
 Finds Hamiltonian Circuit of graph, if exists.  
   
 * `hamiltonCircuit :: Graph a => a -> Maybe (Int, [Int])`
@@ -749,6 +752,74 @@ Finds Hamiltonian Circuit of graph, if exists.
     * The graph.  
   * **Result:**  
     * A state that stores the information, including both the desired result and all the data computed through the dynamic programming part.  
+
+<br />  
+
+## [Back to Title](#Haskell-Graphs)  
+<br />
+
+# [Sort.hs](./Sort.hs)
+Merge-sort, quick-sort & heap-sort.  
+  
+* `mergeSort :: forall a. (Ord a) => Vec1D a -> Vec1D a`  
+  * Conducts merge-sort on a given array. The result is ordered from least to greatest;  
+  * The type `Vec1D a` is essentially `Array Int a`; see the section **[Utilities.hs](#array-1)**;  
+  * The polymorphic type `a` is any instance of the type class `Ord`.  
+  * **Argument 1:**  
+    * The input array, indexed from 0.  
+  * **Result:**  
+    * The array sorted from least to greatest.  
+  * *Pre:* The array must be indexed from 0.  
+
+* `quickSort :: forall a. (Ord a) => Vec1D a -> Vec1D a`  
+  * Conducts quick-sort on a given array. The result is ordered from least to greatest;  
+  * The polymorphic type `a` is any instance of the type class `Ord`.  
+  * **Argument 1:**  
+    * The input array, indexed from 0.  
+  * **Result:**  
+    * The array sorted from least to greatest.  
+  * *Pre:* The array must be indexed from 0.  
+
+* `heapSort :: forall a. (Ord a) => Vec1D a -> Vec1D a`  
+  * Conducts heap-sort on a given array. The result is ordered from least to greatest;  
+  * The polymorphic type `a` is any instance of the type class `Ord`.  
+  * **Argument 1:**  
+    * The input array, indexed from **1**.  
+  * **Result:**  
+    * The array sorted from least to greatest.  
+  * *Pre:* The array must be indexed from 1.  
+
+* `fixMaxHeap :: (Ord a) => STVec1D s a -> Int -> Int -> ST s ()`  
+  * A helper function that turns a heap (represented by a `STArray`) that contains two max heap as the sub-heaps of the root into a max heap on its own;  
+  * The heap is indexed from 1;  
+  * For any element at index i, it's children are index (2 * i) and index (2 * i + 1), if they did not exceed the length of the heap;  
+  * The polymorphic type `a` is any instance of the type class `Ord`;  
+  * The polymorphic type `s` is dummy.  
+  * **Argument 1 `STVec1D s a`:**  
+    * The `STArray` representing the heap.  
+  * **Argument 2 `Int`:**  
+    * The index of the root of the heap.  
+  * **Argument 3 `Int`:**  
+    * The index of the last element in the heap;  
+    * Any element beyond this index is not a part of the heap.  
+  * **Result:**  
+    * Nothing; the max heap is already produced.  
+  * *Pre:* The heap must be indexed from 1;  
+  * *Pre:* The sub-heaps of the root are already max heaps.  
+
+* `toMaxHeap :: (Ord a) => STVec1D s a -> ST s ()`  
+  * A helper function that turns a heap into a max heap.  
+    * The heap is indexed from 1;  
+    * The root is at index 1;  
+    * For any element at index i, it's children are index (2 * i) and index (2 * i + 1), if they did not exceed the length of the array;  
+    * The polymorphic type `a` is any instance of the type class `Ord`;  
+    * The polymorphic type `s` is dummy.  
+    * **Argument 1:**  
+      * The `STArray` representing the heap.  
+    * **Result:**  
+      * Nothing; the max heap is already produced.  
+    * *Pre:* The heap must be indexed from 1.  
+
 
 <br />  
 
