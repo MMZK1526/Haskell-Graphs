@@ -215,14 +215,14 @@ Provides basic access/modification methods.
     * **Result:**  
       * The number of nodes in the graph.  
 
-  *  `wArcs :: a -> [((Int, Int), Int)]`
+  * `wArcs :: a -> [((Int, Int), Int)]`
     * **Argument 1:**  
       * The graph.  
     * **Result:**  
       * The list of **directed** arcs in the graph.  
     * **Pre:** The graph is directed.  
 
-  *  `uArcs :: a -> [((Int, Int), Int)]`
+  * `uArcs :: a -> [((Int, Int), Int)]`
     * **Argument 1:**  
       * The graph.  
     * **Result:**  
@@ -259,15 +259,15 @@ Provides basic access/modification methods.
     * **Pre:** The node is in the graph and the graph is unweighted.  
 
   * `neighbours :: Int -> a -> [Int]`
-  * Returns the list of nodes that connects from the given node.  
-  * Loops are counted twice.  
-  * **Argument 1 `Int`:**  
-    * The node.  
-  * **Argument 2 `a`:**  
-    * The graph.  
-  * **Result:**  
-    * The list of adjacent nodes from the given node.  
-  * **Pre:** The node is in the graph.  
+    * Returns the list of nodes that connects from the given node.  
+    * Loops are counted twice.  
+    * **Argument 1 `Int`:**  
+      * The node.  
+    * **Argument 2 `a`:**  
+      * The graph.  
+    * **Result:**  
+      * The list of adjacent nodes from the given node.  
+    * **Pre:** The node is in the graph.  
 
 * `data GraphList`  
   * Represents unweighted graphs/simple integer-weighted graphs in the form of Adjacency List.  
