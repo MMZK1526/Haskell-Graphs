@@ -2,8 +2,9 @@
 
 module SpanningTree where
 
-import           Control.Monad
+import           Control.Monad (forM_)
 import           Control.Monad.Trans.State
+  (State, execState, get, put, runState)
 import           Data.List (minimumBy, sortBy)
 import           Data.Maybe (fromJust)
 

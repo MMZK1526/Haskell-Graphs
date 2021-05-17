@@ -245,7 +245,7 @@ wg3
   ]
 
 
--- Fiding Minimum Spanning Trees using Prim's Algorithm:
+-- Finding Minimum Spanning Trees using Prim's Algorithm:
   -- primMST wg1
     -- Just Nodes:
     -- [1,2,3,4]
@@ -277,7 +277,7 @@ wg3
   -- primMST k3t2
     -- Nothing
 
--- Fiding Minimum Spanning Trees using Kruskal's Algorithm:
+-- Finding Minimum Spanning Trees using Kruskal's Algorithm:
   -- kruskalMST wg3
     -- 1: [2: 5]
     -- 2: [1: 5, 3: 6, 8: 3]
@@ -457,7 +457,6 @@ heapSorted :: Vec1D Int
 heapSorted = heapSort arr
 
 
--- For Exam
 a, b, c, d, e, f, g, h, i, j, k, l, m, n :: Int
 a = 1
 b = 2

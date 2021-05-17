@@ -8,11 +8,10 @@ module Graph where
 -- Represents graphs with modified ajacency lists.
 -- Provides initialisers and modifiers.
 
-import           Control.Monad
-import           Control.Monad.Trans.State
+import           Control.Monad (liftM2)
 import           Data.Foldable (foldl', toList)
 import           Data.List (intercalate)
-import           Data.Maybe (fromJust, isNothing, maybe)
+import           Data.Maybe (fromJust, fromMaybe, isNothing, maybe)
 import           Data.Tuple (swap)
 import           Prelude hiding (map, replicate)
 
@@ -21,7 +20,7 @@ import           Data.IntMap.Lazy
   (IntMap(..), adjust, delete, fromAscList, insert, keys, map, mapWithKey
   , member, notMember, (!), (!?)
   )
-import           Data.Sequence hiding 
+import           Data.Sequence hiding
   (adjust, filter, length, lookup, null, zip, (!?))
 
 
@@ -41,7 +40,7 @@ prl = initUGraph [1..3] [(1, 2), (1, 2)]
 class Graph a where
   -- Returns the empty graph with no nodes and arcs.
   emptyGraph :: a
-  
+
   -- Initialises the graph by having the nodes from the first argument
   -- and the arcs specified by the list of pairs in the second argument,
   -- e.g. initUGraph [0, 1, 2] [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
@@ -72,7 +71,7 @@ class Graph a where
   -- the arcs by 1.
   -- Pre: the node in the arc list are in the graph.
   addArcs :: [(Int, Int)] -> a -> a
-  addArcs = addWArcs . (flip (,) 1 <$>)
+  addArcs = addWArcs . ((, 1) <$>)
 
   -- Similar to above, but the arcs are undirected (both n to n' and n' to n).
   -- Pre: the node in the arc list are in the graph.
@@ -153,12 +152,12 @@ class Graph a where
 -- Representing a graph as an Adjacency List.
 -- Note that an undirected loop is stored twice,
 -- e.g. the arc (4, 4) is the represented as 4: [4: 2] instead of 4: [4: 1].
-data GraphList = LGraph 
+data GraphList = LGraph
   { nodeNumL :: Int
   , nodeList :: IntMap (IntMap Int)
   }
 
-instance Show GraphList where 
+instance Show GraphList where
   show (LGraph _ list)
     = "Nodes:\n" ++ show (toList $ keys list) ++ "\nAdjacency List:"
     ++ concatMap showEntry (keys list)
@@ -166,11 +165,11 @@ instance Show GraphList where
       showEntry k
         = '\n' : show k ++ ": [" ++ showMap (list ! k) ++ "]"
       showMap m
-        = intercalate ", " $ (\k -> show k ++ ": " ++ show (m ! k)) <$> (keys m)
+        = intercalate ", " $ (\k -> show k ++ ": " ++ show (m ! k)) <$> keys m
 
 instance Eq GraphList where
   LGraph s l == LGraph s' l'
-    = s == s' && (and $ (liftM2 (==) (l !?) (l' !?)) <$> (keys l))
+    = s == s' && and (liftM2 (==) (l !?) (l' !?) <$> keys l)
 
 instance Graph GraphList where
   emptyGraph :: GraphList
@@ -204,9 +203,9 @@ instance Graph GraphList where
     = g
   addNodes (n : ns) g@(LGraph sz list)
     | member n list = addNodes ns g
-    | otherwise     
+    | otherwise
       = addNodes ns $ LGraph (sz + 1) (insert n (fromAscList []) list)
-      
+
   removeArcs :: [(Int, Int)] -> GraphList -> GraphList
   removeArcs arcs (LGraph sz list)
     = LGraph sz $ removeArcs' list arcs
@@ -225,7 +224,7 @@ instance Graph GraphList where
   removeNodes [] g
     = g
   removeNodes (n : ns) g@(LGraph sz list)
-    | member n list 
+    | member n list
       = removeNodes ns $ LGraph (sz - 1) (map (delete n) (delete n list))
     | otherwise = removeNodes ns g
 
@@ -249,7 +248,7 @@ instance Graph GraphList where
           updateEntry m
             | notMember n' l = m
             | notMember n' m = insert n' w m
-            | otherwise      = adjust (const w) n' m 
+            | otherwise      = adjust (const w) n' m
 
   simplify :: GraphList -> GraphList
   simplify (LGraph sz list)
@@ -257,7 +256,7 @@ instance Graph GraphList where
 
   disconnect :: Int -> GraphList -> GraphList
   disconnect n (LGraph sz list)
-    = LGraph sz $ (delete n) <$> delete n list
+    = LGraph sz $ delete n <$> delete n list
 
   nodes :: GraphList -> [Int]
   nodes = keys . nodeList
@@ -269,20 +268,20 @@ instance Graph GraphList where
   wArcs (LGraph _ list) = do
     n <- keys list
     let entry = list ! n
-    (liftM2 (,) (n ,) (entry !)) <$> keys entry
+    liftM2 (,) (n ,) (entry !) <$> keys entry
 
   uArcs:: GraphList -> [((Int, Int), Int)]
   uArcs = filter (\((a, b), _) -> a <= b) . wArcs
 
   inDegree :: Int -> GraphList -> Int
-  inDegree = (sum .) . (. nodeList) . fmap . (maybe 0 id .) . flip (!?)
+  inDegree = (sum .) . (. nodeList) . fmap . (fromMaybe 0 .) . flip (!?)
 
   outDegree :: Int -> GraphList -> Int
-  outDegree = ((maybe 0 id . (sum <$>)) .) . flip ((!?) . nodeList)
+  outDegree = (maybe 0 sum .) . flip ((!?) . nodeList)
 
   degree :: Int -> GraphList -> Int
   degree n g
-    = maybe 0 id (sum <$> mapWithKey (dCount n) <$> (nodeList g !? n))
+    = maybe 0 (sum . mapWithKey (dCount n)) (nodeList g !? n)
     where
       dCount key n w
         | key == n  = 2 * w

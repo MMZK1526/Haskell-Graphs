@@ -4,15 +4,18 @@
 
 module ShortestPath where
 
-import           Control.Monad
-import           Control.Monad.Trans.State
+import           Control.Monad (forM_, join, liftM2)
+import Control.Monad.Trans.State
+    (State, evalState, execState, get, put, runState)
 import           Data.Either (Either(..))
 import           Data.List (minimumBy)
-import           Data.Maybe
+import           Data.Maybe (fromJust, isJust)
 
 -- Requires installation
 import           Data.IntMap.Lazy as IM 
- (IntMap(..), notMember, delete, insert, empty, fromList, keys, null, (!), (!?))
+ ( IntMap(..), notMember, delete, insert, empty, fromList, keys, null, (!)
+ , (!?)
+ )
 import           Data.Map as M (Map(..), empty, insert, (!?))
 import           Data.Set as S (fromList, insert, member)
 

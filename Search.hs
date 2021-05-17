@@ -9,13 +9,14 @@ module Search where
 -- Implements topological sorting over any direct acyclic graph.
 
 import           Control.Monad
-import           Control.Monad.Trans.State
+import Control.Monad.Trans.State
+    (State, evalState, execState, get, put, runState)
 import           Data.Maybe (fromJust, isNothing)
 
 -- Require installation
 import           Data.IntMap.Lazy as IM
   (IntMap(..), empty, insert, member, (!), (!?))
-import           Data.Sequence hiding (length, null, (!?))
+import           Data.Sequence (Seq((:<|), Empty), fromList, (<|), (|>))
 import           Data.Set as S (Set(..), empty, fromDescList, insert, member)
 
 import           Graph

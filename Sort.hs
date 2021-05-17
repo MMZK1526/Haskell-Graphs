@@ -5,11 +5,12 @@
 
 module Sort where
 
-import           Control.Monad
-import           Control.Monad.ST
-import           Data.Array
-import           Data.Array.ST
-import           Data.Maybe
+import           Control.Monad (forM_, when)
+import           Control.Monad.ST (ST, runST)
+import           Data.Array (bounds, (!))
+import Data.Array.ST
+  (MArray(newArray_, getBounds), freeze, readArray, thaw, writeArray)
+import           Data.Maybe (fromJust)
 
 import           Utilities
 
@@ -31,7 +32,7 @@ mergeSort arr
         forM_ [mid..(sup - 1)] $ \j -> readArray arrST j >>= writeArray arrST2 j
         mergeSort' arrST1 inf mid
         mergeSort' arrST2 mid sup
-        (i, j, k) <- loop (inf, mid, inf) $ \(i, j, k) -> 
+        (i, j, k) <- loop (inf, mid, inf) $ \(i, j, k) ->
           breakWhen (i >= mid || j >= sup) (i, j, k) $ do
             vi <- readArray arrST1 i
             vj <- readArray arrST2 j
@@ -78,18 +79,14 @@ fixMaxHeap hST r lim = do
     vlc   <- readArray hST (2 * r)
     mbvrc <- readArrayMaybe hST (2 * r + 1)
     if (2 * r + 1 > lim) || (fromJust mbvrc <= vlc)
-      then if vr < vlc
-        then do
-          writeArray hST r vlc
-          writeArray hST (2 * r) vr
-          fixMaxHeap hST (2 * r) lim
-        else return ()
-      else if vr < fromJust mbvrc
-        then do
-          writeArray hST r (fromJust mbvrc)
-          writeArray hST (2 * r + 1) vr
-          fixMaxHeap hST (2 * r + 1) lim
-        else return ()
+      then when (vr < vlc) $ do
+        writeArray hST r vlc
+        writeArray hST (2 * r) vr
+        fixMaxHeap hST (2 * r) lim
+      else when (vr < fromJust mbvrc) $ do
+        writeArray hST r (fromJust mbvrc)
+        writeArray hST (2 * r + 1) vr
+        fixMaxHeap hST (2 * r + 1) lim
   return ()
 
 toMaxHeap :: (Ord a) => STVec1D s a -> ST s ()
@@ -118,7 +115,7 @@ heapSort arr = runST $ do
       hST <- newArray_ (1, ub - lb + 1)
       forM_ [1..(ub - lb + 1)] $ \i -> writeArray hST i $ arr ! (i - 1 + lb)
       return hST
-    heapSort' hST 1 
+    heapSort' hST 1
       = return ()
     heapSort' hST k = do
       v1 <- readArray hST 1

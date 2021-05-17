@@ -2,11 +2,12 @@
 
 module HamiltonCircuit where
 
-import           Control.Monad
-import           Control.Monad.Trans.State
+import           Control.Monad (forM_, join, liftM2, when)
+import           Control.Monad.Trans.State (State, execState, get, put)
 import           Data.Array (array, (!))
-import           Data.Bits
-import           Data.Foldable
+import           Data.Bits (Bits(bit, testBit))
+import           Data.Bifunctor (second)
+import           Data.Foldable (toList)
 
 -- Requires installation
 import           Data.Map as M (Map(..), empty, insert, (!?))
@@ -21,7 +22,7 @@ import           Utilities
 hamiltonCircuit :: Graph a => a -> Maybe (Int, [Int])
 hamiltonCircuit graph = do
   raw <- fst $ execState (bellmanHeldKarpS starter f fin graph) (Nothing, empty)
-  return (fst raw, toList $ snd raw)
+  return $ second toList raw
   where
     starter n i = do
       (_, dict) <- get
@@ -44,23 +45,21 @@ hamiltonCircuit graph = do
 
 -- A State that simulates the bare-bones of Bellman-Held-Karp Algorithm
 -- See full documentation in README.md (TODO).
-bellmanHeldKarpS :: (Graph a) 
-  => (Int -> Int -> State b ()) 
-  -> (Integer -> Integer -> Int -> Int -> State b ()) 
-  -> (Integer -> Int -> Int -> State b ()) 
-  -> a 
+bellmanHeldKarpS :: (Graph a)
+  => (Int -> Int -> State b ())
+  -> (Integer -> Integer -> Int -> Int -> State b ())
+  -> (Integer -> Int -> Int -> State b ())
+  -> a
   -> State b ()
-bellmanHeldKarpS starter f finisher graph 
+bellmanHeldKarpS starter f finisher graph
   | null $ nodes graph = return ()
   | otherwise          = do
     forM_ ns' $ \x -> starter n x
-    forM_ ([1..sup]) $ \s -> forM_ range $ \i -> if testBit s i
+    forM_ [1..sup] $ \s -> forM_ range $ \i -> if testBit s i
       then return ()
       else forM_ range $ \j -> do
         let isIn = testBit s j
-        if isIn && i /= j
-          then f s (s - bit j) (ns ! i) (ns ! j)
-          else return ()
+        when (isIn && i /= j) $ f s (s - bit j) (ns ! i) (ns ! j)
     forM_ range $ \i -> finisher (sup - bit i) n (ns ! i)
   where
     (n : ns') = nodes graph

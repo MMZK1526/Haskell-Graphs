@@ -6,7 +6,7 @@ For full documentation of the functions, see below.
 
 Dependencies: `Data.IntMap`, `Data.Map`, `Data.Sequence`, `Data.Set`.  
 Install the hackage `containers`.  
-<br />
+
 
 # Contents   
 ## 1. [Graph.hs](#graphhs)  

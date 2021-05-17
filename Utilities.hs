@@ -5,17 +5,19 @@ module Utilities where
 
 -- By Sorrowful T-Rex; https://github.com/sorrowfulT-Rex/Haskell-Graphs.
 
-import           Control.Applicative
-import           Control.Monad.ST
-import           Control.Monad.Trans.State
-import           Data.Array hiding ((!))
-import           Data.Array.ST
+import           Control.Applicative (liftA2)
+import           Control.Monad (forM_, void)
+import           Control.Monad.ST (ST)
+import           Control.Monad.Trans.State (execState, get, put)
+import           Data.Array (Array, array)
+import           Data.Array.ST (STArray, MArray, getBounds, readArray, thaw)
 import           Data.Either (Either(..), isLeft, isRight)
 import           Data.Foldable (forM_, toList)
+import           Data.Functor ((<&>))
 import           Data.Maybe (isJust, isNothing)
 
 -- Require installation
-import           Data.IntMap.Lazy as IM 
+import           Data.IntMap.Lazy as IM
   (IntMap(..), delete, empty, insert, update, (!))
 import           Data.Sequence as S (Seq(..), length, singleton, (<|), (><))
 
@@ -77,7 +79,7 @@ continueWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
 continueWhen_ True _
   = continueLoop
 continueWhen_ _ m
-  = m >>= return . flag
+  = m <&> flag
 
 -- Runs the monadic action if the predicate is true; otherwise breakLoop.
 -- The result is discarded.
@@ -85,20 +87,20 @@ breakWhen_ :: (Monad m, Flaggable l) => Bool -> m l -> m (Terminate ())
 breakWhen_ True _
   = breakLoop
 breakWhen_ _ m
-  = m >>= return . flag
+  = m <&> flag
 
 -- Runs the monadic action if the predicate is true; otherwise breakLoop.
 -- The result is retained.
 breakWhen :: (Monad m) => Bool -> a -> m a -> m (Terminate a)
 breakWhen True a _
-  = returnBreak a 
+  = returnBreak a
 breakWhen _ _ m = m >>= returnContinue
 
 -- runUnlessBreak returns (breakFlag) when the input indicates termination, 
 -- and applies the monadic action if it does not terminate.
-runUnlessBreak :: (Monad m, Flaggable l1, Flaggable l2) 
-  => l1 
-  -> m l2 
+runUnlessBreak :: (Monad m, Flaggable l1, Flaggable l2)
+  => l1
+  -> m l2
   -> m (Terminate ())
 runUnlessBreak = breakWhen_ . isBreaking
 
@@ -107,9 +109,9 @@ runUnlessBreak = breakWhen_ . isBreaking
 -- The results wrapped in the Terminate is disgarded.
 -- If the action never terminates, in other words, if it is always in the form 
 -- of m (continueFlag), forMBreak_ is similar to forM_.
-forMBreak_ :: (Foldable f, Monad m, Flaggable l) 
-  => f a 
-  -> (a -> m l) 
+forMBreak_ :: (Foldable f, Monad m, Flaggable l)
+  => f a
+  -> (a -> m l)
   -> m (Terminate ())
 forMBreak_ xs m
   = forMB_ xs' m
@@ -117,13 +119,13 @@ forMBreak_ xs m
     xs' = toList xs
     forMB_ [] m
       = continueLoop
-    forMB_ (x : xs) m 
+    forMB_ (x : xs) m
       = m x >>= flip breakWhen_ (forMB_ xs m) . isBreaking
 
 -- loop_ iterates the terminable monadic action until it returns breakFlag, 
 -- discarding the result wrapped in the Terminate.
 loop_ :: (Monad m, Flaggable l) => m l -> m (Terminate ())
-loop_ m 
+loop_ m
   = m >>= \s -> breakWhen_ (isBreaking s) (loop_ m)
 
 -- loop iterates the terminable monadic action until it returns breakFlag, 
@@ -132,7 +134,7 @@ loop :: Monad m => a -> (a -> m (Terminate a)) -> m a
 loop i f = do
   b <- f i
   if isBreaking b
-    then return i 
+    then return i
     else loop (information b) f
 
 
@@ -180,9 +182,9 @@ unionFind i j uf@(UF im sets)
     j' = getRep j uf
     si = sets ! i'
     sj = sets ! j'
-    replace s r 
+    replace s r
       = forM_ s $ \e -> get >>= put . insert e r
-    im' 
+    im'
       | S.length si < S.length sj = execState (replace si j') im
       | otherwise                 = execState (replace sj i') im
     sets'
@@ -220,9 +222,9 @@ newSTArrHeap = thaw . newArrHeap
 readArrayMaybe :: (MArray a e m) => a Int e -> Int -> m (Maybe e)
 readArrayMaybe arrST index = do
   (inf, sup) <- getBounds arrST
-  if index > sup || index < inf 
+  if index > sup || index < inf
     then return Nothing
-    else readArray arrST index >>= return . Just
+    else readArray arrST index <&> Just
 
 --------------------------------------------------------------------------------
 -- Miscellaneous
@@ -233,7 +235,7 @@ readArrayMaybe arrST index = do
 runWhenJust :: Monad m => Maybe a -> m b -> m ()
 runWhenJust m f
   | isNothing m = return ()
-  | otherwise   = f >> return ()
+  | otherwise   = void f
 
 -- minMaybeOn returns the minimum if both arguments are Justs; Nothing if both
 -- arguments are Nothing; the argument that is a Just if one of them is a Just.
@@ -241,9 +243,8 @@ runWhenJust m f
 minMaybeOn :: (Ord b) => (a -> b) -> Maybe a -> Maybe a -> Maybe a
 minMaybeOn f ma mb
   | isJust (ma >> mb) = if liftA2 (<=) (f <$> ma) (f <$> mb) == Just True
-     then ma 
+     then ma
      else mb
-  | isJust ma         = ma
   | isNothing ma      = mb
   | otherwise         = ma
 
@@ -252,8 +253,8 @@ minMaybeOn f ma mb
 -- If the two arguments are equal, return the first one.
 maxMaybeOn :: (Ord b) => (a -> b) -> Maybe a -> Maybe a -> Maybe a
 maxMaybeOn f ma mb
-  | isJust (ma >> mb) = if liftA2 (>=) (f <$> ma) (f <$> mb) == Just True 
-    then ma 
+  | isJust (ma >> mb) = if liftA2 (>=) (f <$> ma) (f <$> mb) == Just True
+    then ma
     else mb
   | isNothing ma      = mb
   | otherwise         = ma
