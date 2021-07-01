@@ -5,7 +5,7 @@
 -- Ajacency List representation, and it cannot tell apart an arc with weight 0
 -- and an arc that does not exist.
 
-import           Control.Monad
+import Control.Monad ( Monad((>>)), Functor(fmap), forM_ )
 import           Control.Monad.Trans.State
 import           Data.Foldable (toList)
 import           Data.List (intercalate)

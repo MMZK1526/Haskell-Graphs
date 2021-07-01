@@ -1,3 +1,5 @@
+This repo is closed; I am not expected to update it ever again.  
+
 # Haskell-Graphs
 Implements graph-related algorithms in `Haskell`.  
 Based on the Imperial College First-Year Course: 40008 Graphs and Algorithms.  
